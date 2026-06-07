@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Subscriber {
+  id         String    @id @default(cuid())
+  phone      String    @unique
+  regionCode String    @map("region_code")
+  active     Boolean   @default(false)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  verifiedAt DateTime? @map("verified_at")
+
+  @@index([regionCode, active])
+  @@map("subscribers")
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  codeHash  String   @map("code_hash")
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([phone, codeHash, used])
+  @@index([expiresAt])
+  @@map("otp_codes")
+}
+
+model AlertLog {
+  id              String   @id @default(cuid())
+  regionCode      String   @map("region_code")
+  triggeredAt     DateTime @default(now()) @map("triggered_at")
+  triggerReason   String   @map("trigger_reason")
+  recipientsCount Int      @map("recipients_count")
+  weatherSnapshot Json     @map("weather_snapshot")
+
+  @@index([regionCode, triggeredAt])
+  @@map("alert_logs")
+}

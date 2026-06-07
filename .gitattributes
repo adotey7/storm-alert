@@ -1,0 +1,9 @@
+* text=auto
+
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+
+lib/generated/prisma/** linguist-generated=true -whitespace
