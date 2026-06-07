@@ -38,9 +38,18 @@ Required:
 
 Redeploy after changing environment variables.
 
-## 3. GitHub Actions Cron
+## 3. GitHub Actions
 
-Add repository secrets:
+The repository includes two workflows:
+
+- `.github/workflows/ci.yml` runs linting, type-checking, tests, and production build checks.
+- `.github/workflows/poll.yml` calls the protected weather polling route every 30 minutes.
+
+After pushing the repository to GitHub, protect `main` with a repository ruleset and require the `CI / Lint, test, and build` check before merging.
+
+## 4. GitHub Actions Cron
+
+Add repository secrets in GitHub:
 
 ```text
 APP_URL=https://your-domain.example
@@ -55,7 +64,22 @@ GET /api/cron/poll-weather
 
 with the `x-cron-secret` header.
 
-## 4. Arkesel Webhook
+Run it once from GitHub Actions after adding the secrets:
+
+1. Open **Actions**.
+2. Select **Poll Weather**.
+3. Select **Run workflow**.
+4. Confirm the run finishes successfully.
+
+You can also smoke-test the deployed endpoint directly:
+
+```bash
+curl --fail --show-error --silent \
+  -X GET "https://your-domain.example/api/cron/poll-weather" \
+  -H "x-cron-secret: your-cron-secret"
+```
+
+## 5. Arkesel Webhook
 
 Configure inbound STOP replies to call:
 
@@ -63,7 +87,7 @@ Configure inbound STOP replies to call:
 https://your-domain.example/api/webhooks/arkesel
 ```
 
-## 5. Smoke Test
+## 6. Smoke Test
 
 After deploying:
 
