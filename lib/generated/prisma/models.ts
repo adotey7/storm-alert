@@ -11,4 +11,5 @@
 export type * from './models/Subscriber'
 export type * from './models/OtpCode'
 export type * from './models/AlertLog'
+export type * from './models/RateLimitEvent'
 export type * from './commonInputTypes'

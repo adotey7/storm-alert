@@ -32,3 +32,8 @@ export type OtpCode = Prisma.OtpCodeModel
  * 
  */
 export type AlertLog = Prisma.AlertLogModel
+/**
+ * Model RateLimitEvent
+ * 
+ */
+export type RateLimitEvent = Prisma.RateLimitEventModel

@@ -43,3 +43,14 @@ model AlertLog {
   @@index([regionCode, triggeredAt])
   @@map("alert_logs")
 }
+
+model RateLimitEvent {
+  id         String   @id @default(cuid())
+  action     String
+  identifier String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([action, identifier, createdAt])
+  @@index([createdAt])
+  @@map("rate_limit_events")
+}

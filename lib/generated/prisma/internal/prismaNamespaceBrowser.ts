@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Subscriber: 'Subscriber',
   OtpCode: 'OtpCode',
-  AlertLog: 'AlertLog'
+  AlertLog: 'AlertLog',
+  RateLimitEvent: 'RateLimitEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -106,6 +107,16 @@ export const AlertLogScalarFieldEnum = {
 } as const
 
 export type AlertLogScalarFieldEnum = (typeof AlertLogScalarFieldEnum)[keyof typeof AlertLogScalarFieldEnum]
+
+
+export const RateLimitEventScalarFieldEnum = {
+  id: 'id',
+  action: 'action',
+  identifier: 'identifier',
+  createdAt: 'createdAt'
+} as const
+
+export type RateLimitEventScalarFieldEnum = (typeof RateLimitEventScalarFieldEnum)[keyof typeof RateLimitEventScalarFieldEnum]
 
 
 export const SortOrder = {

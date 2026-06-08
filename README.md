@@ -77,6 +77,7 @@ CRON_SECRET=""
 ARKESEL_API_KEY=""
 ARKESEL_SENDER_ID="StormGH"
 ARKESEL_API_BASE_URL="https://sms.arkesel.com"
+ARKESEL_WEBHOOK_SECRET=""
 ALERT_COOLDOWN_HOURS="6"
 OTP_EXPIRY_MINUTES="10"
 OTP_PEPPER=""
@@ -85,6 +86,12 @@ NEXT_PUBLIC_ARKESEL_USSD_CODE="*928*01#"
 ```
 
 Never commit `.env` or real credentials.
+
+For the Arkesel STOP webhook, include the same `ARKESEL_WEBHOOK_SECRET` as a query parameter or header:
+
+```text
+https://your-domain.example/api/webhooks/arkesel?secret=YOUR_SECRET
+```
 
 ## Project Structure
 
