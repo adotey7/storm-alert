@@ -5,6 +5,8 @@ import { getPrisma } from "@/lib/prisma";
 const ONE_DAY_MS = 24 * 60 * 60_000;
 
 export const RATE_LIMIT_ACTIONS = {
+  subscribeAttemptIp: "subscribe_attempt_ip",
+  subscribeAttemptPhone: "subscribe_attempt_phone",
   otpSendIp: "otp_send_ip",
   otpSendPhone: "otp_send_phone",
   otpSendPhoneCooldown: "otp_send_phone_cooldown",
