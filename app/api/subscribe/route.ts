@@ -44,6 +44,26 @@ export async function POST(request: Request) {
       return jsonError("Unknown region.", 400);
     }
 
+    const requestIp = getRequestIp(request);
+
+    await enforceRateLimits([
+      {
+        action: RATE_LIMIT_ACTIONS.subscribeAttemptPhone,
+        identifier: phone,
+        limit: 10,
+        windowMs: 10 * 60_000,
+        message:
+          "Too many subscription attempts for this phone. Try again later.",
+      },
+      {
+        action: RATE_LIMIT_ACTIONS.subscribeAttemptIp,
+        identifier: requestIp,
+        limit: 30,
+        windowMs: 10 * 60_000,
+        message: "Too many subscription attempts. Try again later.",
+      },
+    ]);
+
     const prisma = getPrisma();
     const existingSubscriber = await prisma.subscriber.findUnique({
       where: { phone },
@@ -52,8 +72,6 @@ export async function POST(request: Request) {
     if (existingSubscriber?.active && existingSubscriber.verifiedAt) {
       return jsonError("Already subscribed.", 409);
     }
-
-    const requestIp = getRequestIp(request);
 
     await enforceRateLimits([
       {
