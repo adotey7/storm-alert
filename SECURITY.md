@@ -31,5 +31,6 @@ Never commit:
 - Route handlers that touch secrets or the database use the Node.js runtime.
 - OTP verification should be tested with real provider behavior before launch.
 - Cron requests must include `x-cron-secret`.
-- Arkesel webhook requests must include `ARKESEL_WEBHOOK_SECRET` in production.
+- One-way SMS senders should include the public `/unsubscribe` link in alerts.
+- Arkesel webhook requests must include `ARKESEL_WEBHOOK_SECRET` in production when a two-way sender is available.
 - OTP, verification, unsubscribe, and webhook endpoints are protected by database-backed rate limits.

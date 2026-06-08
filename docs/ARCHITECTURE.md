@@ -27,8 +27,9 @@ GitHub Actions
 
 - `app/api/subscribe/route.ts`: validates phone and region, creates or updates pending subscriber, starts OTP.
 - `app/api/verify/route.ts`: verifies OTP and activates subscriber.
+- `app/unsubscribe/page.tsx`: public one-way sender opt-out page.
 - `app/api/unsubscribe/route.ts`: soft-unsubscribes a phone number.
-- `app/api/webhooks/arkesel/route.ts`: handles inbound STOP replies.
+- `app/api/webhooks/arkesel/route.ts`: handles inbound STOP replies when a two-way sender is available.
 - `app/api/cron/poll-weather/route.ts`: protected scheduled weather polling endpoint.
 - `lib/alert-evaluator.ts`: pure threshold evaluator.
 - `lib/weather-client.ts`: Open-Meteo client.
