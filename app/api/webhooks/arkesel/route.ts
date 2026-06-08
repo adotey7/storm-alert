@@ -1,10 +1,22 @@
 import { handleApiError, jsonError } from "@/lib/api-errors";
 import { normalizeGhanaPhone } from "@/lib/phone";
 import { getPrisma } from "@/lib/prisma";
+import {
+  enforceRateLimits,
+  getRequestIp,
+  RATE_LIMIT_ACTIONS,
+} from "@/lib/rate-limit";
+import { isRequestAuthorizedBySecret } from "@/lib/shared-secret";
 
 export const runtime = "nodejs";
 
 type WebhookPayload = Record<string, unknown>;
+const WEBHOOK_IP_LIMIT = {
+  action: RATE_LIMIT_ACTIONS.webhookIp,
+  limit: 120,
+  windowMs: 60 * 60_000,
+  message: "Too many webhook requests. Try again later.",
+} as const;
 
 function getString(payload: WebhookPayload, keys: string[]): string | undefined {
   for (const key of keys) {
@@ -39,6 +51,17 @@ function extractMessage(payload: WebhookPayload): string {
 
 export async function POST(request: Request) {
   try {
+    await enforceRateLimits([
+      {
+        ...WEBHOOK_IP_LIMIT,
+        identifier: getRequestIp(request),
+      },
+    ]);
+
+    if (!isRequestAuthorizedBySecret(request, "ARKESEL_WEBHOOK_SECRET")) {
+      return jsonError("Unauthorized.", 401);
+    }
+
     const payload = (await request.json()) as WebhookPayload;
     const message = extractMessage(payload);
     const phone = extractPhone(payload);

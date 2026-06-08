@@ -8,6 +8,13 @@ import { shouldUseArkeselOtp, verifyArkeselOtp } from "@/lib/arkesel-otp";
 import { OTP_CODE_PATTERN } from "@/lib/otp-code";
 import { hashOtpCode } from "@/lib/otp";
 import { getPrisma } from "@/lib/prisma";
+import {
+  assertWithinRateLimits,
+  clearRateLimitEvents,
+  getRequestIp,
+  RATE_LIMIT_ACTIONS,
+  recordRateLimitEvents,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -21,17 +28,52 @@ export async function POST(request: Request) {
     const payload = verifySchema.parse(await request.json());
     const phoneError = getGhanaPhoneValidationError(payload.phone);
     const phone = normalizeGhanaPhone(payload.phone);
+    const requestIp = getRequestIp(request);
 
     if (phoneError || !phone) {
       return jsonError(phoneError ?? "Invalid Ghana phone number.", 400);
     }
 
     const prisma = getPrisma();
+    const verifyFailureEvents = [
+      {
+        action: RATE_LIMIT_ACTIONS.otpVerifyFailurePhone,
+        identifier: phone,
+      },
+      {
+        action: RATE_LIMIT_ACTIONS.otpVerifyFailureIp,
+        identifier: requestIp,
+      },
+    ];
+    const phoneVerifyFailureEvents = [
+      {
+        action: RATE_LIMIT_ACTIONS.otpVerifyFailurePhone,
+        identifier: phone,
+      },
+    ];
+
+    await assertWithinRateLimits([
+      {
+        action: RATE_LIMIT_ACTIONS.otpVerifyFailurePhone,
+        identifier: phone,
+        limit: 5,
+        windowMs: 10 * 60_000,
+        message: "Too many incorrect codes. Try again later.",
+      },
+      {
+        action: RATE_LIMIT_ACTIONS.otpVerifyFailureIp,
+        identifier: requestIp,
+        limit: 25,
+        windowMs: 10 * 60_000,
+        message: "Too many incorrect verification attempts. Try again later.",
+      },
+    ]);
 
     if (shouldUseArkeselOtp()) {
       const verified = await verifyArkeselOtp(phone, payload.code);
 
       if (!verified) {
+        await recordRateLimitEvents(verifyFailureEvents);
         return jsonError("Invalid or expired OTP.", 400);
       }
 
@@ -57,6 +99,7 @@ export async function POST(request: Request) {
         return jsonError("Subscribe before verifying this number.", 404);
       }
 
+      await clearRateLimitEvents(phoneVerifyFailureEvents);
       return Response.json({ message: "Subscription verified." });
     }
 
@@ -75,6 +118,7 @@ export async function POST(request: Request) {
     });
 
     if (!otpCode) {
+      await recordRateLimitEvents(verifyFailureEvents);
       return jsonError("Invalid or expired OTP.", 400);
     }
 
@@ -92,6 +136,7 @@ export async function POST(request: Request) {
       }),
     ]);
 
+    await clearRateLimitEvents(phoneVerifyFailureEvents);
     return Response.json({ message: "Subscription verified." });
   } catch (error) {
     return handleApiError(error);

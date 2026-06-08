@@ -16,6 +16,11 @@ import {
   hashOtpCode,
 } from "@/lib/otp";
 import { createOtpMessage, sendSms } from "@/lib/sms-dispatcher";
+import {
+  enforceRateLimits,
+  getRequestIp,
+  RATE_LIMIT_ACTIONS,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -47,6 +52,33 @@ export async function POST(request: Request) {
     if (existingSubscriber?.active && existingSubscriber.verifiedAt) {
       return jsonError("Already subscribed.", 409);
     }
+
+    const requestIp = getRequestIp(request);
+
+    await enforceRateLimits([
+      {
+        action: RATE_LIMIT_ACTIONS.otpSendPhoneCooldown,
+        identifier: phone,
+        limit: 1,
+        windowMs: 60_000,
+        message: "Please wait a minute before requesting another code.",
+      },
+      {
+        action: RATE_LIMIT_ACTIONS.otpSendPhone,
+        identifier: phone,
+        limit: 3,
+        windowMs: 30 * 60_000,
+        message:
+          "Too many verification codes requested for this phone. Try again later.",
+      },
+      {
+        action: RATE_LIMIT_ACTIONS.otpSendIp,
+        identifier: requestIp,
+        limit: 10,
+        windowMs: 60 * 60_000,
+        message: "Too many verification requests. Try again later.",
+      },
+    ]);
 
     const useArkeselOtp = shouldUseArkeselOtp();
     const code = useArkeselOtp ? "" : createOtpCode();

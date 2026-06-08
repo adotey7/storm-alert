@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Subscriber: 'Subscriber',
   OtpCode: 'OtpCode',
-  AlertLog: 'AlertLog'
+  AlertLog: 'AlertLog',
+  RateLimitEvent: 'RateLimitEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "subscriber" | "otpCode" | "alertLog"
+    modelProps: "subscriber" | "otpCode" | "alertLog" | "rateLimitEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RateLimitEvent: {
+      payload: Prisma.$RateLimitEventPayload<ExtArgs>
+      fields: Prisma.RateLimitEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RateLimitEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RateLimitEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>
+        }
+        findFirst: {
+          args: Prisma.RateLimitEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RateLimitEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>
+        }
+        findMany: {
+          args: Prisma.RateLimitEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>[]
+        }
+        create: {
+          args: Prisma.RateLimitEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>
+        }
+        createMany: {
+          args: Prisma.RateLimitEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RateLimitEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>[]
+        }
+        delete: {
+          args: Prisma.RateLimitEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>
+        }
+        update: {
+          args: Prisma.RateLimitEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.RateLimitEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RateLimitEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RateLimitEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.RateLimitEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RateLimitEventPayload>
+        }
+        aggregate: {
+          args: Prisma.RateLimitEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRateLimitEvent>
+        }
+        groupBy: {
+          args: Prisma.RateLimitEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RateLimitEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RateLimitEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RateLimitEventCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -701,6 +776,16 @@ export const AlertLogScalarFieldEnum = {
 } as const
 
 export type AlertLogScalarFieldEnum = (typeof AlertLogScalarFieldEnum)[keyof typeof AlertLogScalarFieldEnum]
+
+
+export const RateLimitEventScalarFieldEnum = {
+  id: 'id',
+  action: 'action',
+  identifier: 'identifier',
+  createdAt: 'createdAt'
+} as const
+
+export type RateLimitEventScalarFieldEnum = (typeof RateLimitEventScalarFieldEnum)[keyof typeof RateLimitEventScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -938,6 +1023,7 @@ export type GlobalOmitConfig = {
   subscriber?: Prisma.SubscriberOmit
   otpCode?: Prisma.OtpCodeOmit
   alertLog?: Prisma.AlertLogOmit
+  rateLimitEvent?: Prisma.RateLimitEventOmit
 }
 
 /* Types for Logging */

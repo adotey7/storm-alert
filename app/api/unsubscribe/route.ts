@@ -5,6 +5,11 @@ import {
   normalizeGhanaPhone,
 } from "@/lib/phone";
 import { getPrisma } from "@/lib/prisma";
+import {
+  enforceRateLimits,
+  getRequestIp,
+  RATE_LIMIT_ACTIONS,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -21,6 +26,23 @@ export async function POST(request: Request) {
     if (phoneError || !phone) {
       return jsonError(phoneError ?? "Invalid Ghana phone number.", 400);
     }
+
+    await enforceRateLimits([
+      {
+        action: RATE_LIMIT_ACTIONS.unsubscribePhone,
+        identifier: phone,
+        limit: 5,
+        windowMs: 60 * 60_000,
+        message: "Too many unsubscribe attempts for this phone.",
+      },
+      {
+        action: RATE_LIMIT_ACTIONS.unsubscribeIp,
+        identifier: getRequestIp(request),
+        limit: 20,
+        windowMs: 60 * 60_000,
+        message: "Too many unsubscribe requests. Try again later.",
+      },
+    ]);
 
     await getPrisma().subscriber.updateMany({
       where: { phone },
