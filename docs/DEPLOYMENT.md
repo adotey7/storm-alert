@@ -33,7 +33,9 @@ Required:
 - `ARKESEL_API_KEY`
 - `ARKESEL_SENDER_ID`
 - `ARKESEL_API_BASE_URL`
+- `ARKESEL_WEBHOOK_SECRET`
 - `OTP_PEPPER`
+- `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_ARKESEL_USSD_CODE`
 
 Redeploy after changing environment variables.
@@ -79,12 +81,20 @@ curl --fail --show-error --silent \
   -H "x-cron-secret: your-cron-secret"
 ```
 
-## 5. Arkesel Webhook
+## 5. Unsubscribe Flow
 
-Configure inbound STOP replies to call:
+Set `NEXT_PUBLIC_APP_URL` in Vercel to the public production URL. Alert SMS messages use it to include:
 
 ```text
-https://your-domain.example/api/webhooks/arkesel
+https://your-domain.example/unsubscribe
+```
+
+For one-way sender IDs, this public unsubscribe page is the primary opt-out path.
+
+If you later use a two-way Arkesel sender, configure inbound STOP replies to call:
+
+```text
+https://your-domain.example/api/webhooks/arkesel?secret=YOUR_SECRET
 ```
 
 ## 6. Smoke Test
@@ -94,5 +104,5 @@ After deploying:
 1. Subscribe with a real Ghana phone number.
 2. Verify via SMS OTP.
 3. Verify the USSD fallback guidance appears on `/verify`.
-4. Reply `STOP` and confirm the subscriber becomes inactive.
+4. Open `/unsubscribe` and confirm the subscriber becomes inactive.
 5. Manually trigger the GitHub Actions workflow.

@@ -1,5 +1,6 @@
 import { createAlertMessage, evaluateAlertRisk } from "@/lib/alert-evaluator";
 import { handleApiError, jsonError } from "@/lib/api-errors";
+import { getPublicUnsubscribeUrl } from "@/lib/app-url";
 import { getNumberEnv, requireEnv } from "@/lib/env";
 import { getPrisma } from "@/lib/prisma";
 import { regions } from "@/lib/regions";
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
     const cooldownCutoff = new Date(Date.now() - cooldownHours * 60 * 60_000);
     const results: RegionPollResult[] = [];
     let alertsSent = 0;
+    const unsubscribeUrl = getPublicUnsubscribeUrl();
 
     for (const region of regions) {
       const forecast = await fetchRegionForecast(region);
@@ -81,7 +83,7 @@ export async function GET(request: Request) {
       if (phones.length > 0) {
         await sendSms({
           recipients: phones,
-          message: createAlertMessage(region.name, evaluation),
+          message: createAlertMessage(region.name, evaluation, unsubscribeUrl),
         });
         alertsSent += 1;
       }

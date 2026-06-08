@@ -78,4 +78,19 @@ describe("alert evaluator", () => {
       "wind speed 61km/h exceeds 60km/h",
     );
   });
+
+  it("adds an unsubscribe URL when provided", () => {
+    const evaluation = evaluateAlertRisk(
+      testRegion,
+      createForecast({ wind_speed_10m: [12, 61, 14, 12, 10, 8] }),
+    );
+
+    expect(
+      createAlertMessage(
+        "Greater Accra",
+        evaluation,
+        "https://storm-alert.example/unsubscribe",
+      ),
+    ).toContain("Opt out: https://storm-alert.example/unsubscribe");
+  });
 });

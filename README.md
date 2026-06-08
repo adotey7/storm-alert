@@ -12,7 +12,7 @@ StormAlert GH lets people subscribe with a Ghana phone number and region, verifi
 - Arkesel OTP with USSD fallback guidance
 - Region-aware weather polling with Open-Meteo
 - Protected cron endpoint for GitHub Actions schedules
-- STOP/unsubscribe webhook endpoint for Arkesel inbound replies
+- Public unsubscribe page for one-way SMS senders
 - Neon Postgres persistence through Prisma
 - Focused unit coverage for phone parsing, OTP helpers, and alert evaluation
 
@@ -82,12 +82,19 @@ ALERT_COOLDOWN_HOURS="6"
 OTP_EXPIRY_MINUTES="10"
 OTP_PEPPER=""
 NEXT_PUBLIC_APP_NAME="StormAlert GH"
+NEXT_PUBLIC_APP_URL="https://your-domain.example"
 NEXT_PUBLIC_ARKESEL_USSD_CODE="*928*01#"
 ```
 
 Never commit `.env` or real credentials.
 
-For the Arkesel STOP webhook, include the same `ARKESEL_WEBHOOK_SECRET` as a query parameter or header:
+Storm alerts include an opt-out link to:
+
+```text
+https://your-domain.example/unsubscribe
+```
+
+If you later use a two-way Arkesel sender, include the same `ARKESEL_WEBHOOK_SECRET` as a query parameter or header for inbound STOP replies:
 
 ```text
 https://your-domain.example/api/webhooks/arkesel?secret=YOUR_SECRET

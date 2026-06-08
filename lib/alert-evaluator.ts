@@ -103,6 +103,9 @@ export function evaluateAlertRisk(
 export function createAlertMessage(
   regionName: string,
   evaluation: AlertEvaluation,
+  unsubscribeUrl?: string,
 ): string {
-  return `StormAlert GH: Weather risk detected for ${regionName}. ${evaluation.reasons[0]}. Stay alert and avoid flood-prone areas.`;
+  const unsubscribeText = unsubscribeUrl ? ` Opt out: ${unsubscribeUrl}` : "";
+
+  return `StormAlert GH: Weather risk detected for ${regionName}. ${evaluation.reasons[0]}. Stay alert and avoid flood-prone areas.${unsubscribeText}`;
 }
