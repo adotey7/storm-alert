@@ -82,3 +82,7 @@ export async function sendSms({
 export function createOtpMessage(code: string): string {
   return `Your StormAlert GH verification code is ${code}. It expires soon.`;
 }
+
+export function createAlertAreaUpdateMessage(code: string): string {
+  return `StormAlert GH: Your alert area update code is ${code}. It expires soon.`;
+}

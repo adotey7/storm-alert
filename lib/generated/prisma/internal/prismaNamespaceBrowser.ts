@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Subscriber: 'Subscriber',
   OtpCode: 'OtpCode',
+  AlertAreaUpdateRequest: 'AlertAreaUpdateRequest',
   AlertLog: 'AlertLog',
   RateLimitEvent: 'RateLimitEvent'
 } as const
@@ -99,6 +100,22 @@ export const OtpCodeScalarFieldEnum = {
 } as const
 
 export type OtpCodeScalarFieldEnum = (typeof OtpCodeScalarFieldEnum)[keyof typeof OtpCodeScalarFieldEnum]
+
+
+export const AlertAreaUpdateRequestScalarFieldEnum = {
+  id: 'id',
+  phone: 'phone',
+  regionCode: 'regionCode',
+  forecastZoneCode: 'forecastZoneCode',
+  forecastLat: 'forecastLat',
+  forecastLon: 'forecastLon',
+  locationAccuracyM: 'locationAccuracyM',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type AlertAreaUpdateRequestScalarFieldEnum = (typeof AlertAreaUpdateRequestScalarFieldEnum)[keyof typeof AlertAreaUpdateRequestScalarFieldEnum]
 
 
 export const AlertLogScalarFieldEnum = {

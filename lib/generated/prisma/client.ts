@@ -52,6 +52,11 @@ export type Subscriber = Prisma.SubscriberModel
  */
 export type OtpCode = Prisma.OtpCodeModel
 /**
+ * Model AlertAreaUpdateRequest
+ * 
+ */
+export type AlertAreaUpdateRequest = Prisma.AlertAreaUpdateRequestModel
+/**
  * Model AlertLog
  * 
  */
