@@ -31,6 +31,21 @@ async function readJsonSafely(response: Response): Promise<unknown> {
   }
 }
 
+async function fetchOtpProvider(
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (error) {
+    throw new OtpProviderError(
+      "OTP service is temporarily unavailable.",
+      503,
+      error instanceof Error ? { message: error.message } : undefined,
+    );
+  }
+}
+
 function toArkeselNumber(phone: string): string {
   return phone.replace(/^\+/, "");
 }
@@ -73,22 +88,25 @@ export function shouldUseArkeselOtp(): boolean {
 
 export async function generateArkeselOtp(phone: string): Promise<ArkeselOtpResult> {
   const apiKey = requireEnv("ARKESEL_API_KEY");
-  const response = await fetch(`${getOtpBaseUrl()}/api/otp/generate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "api-key": apiKey,
+  const response = await fetchOtpProvider(
+    `${getOtpBaseUrl()}/api/otp/generate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": apiKey,
+      },
+      body: JSON.stringify({
+        expiry: getOtpExpiryMinutes(),
+        length: 6,
+        medium: "sms",
+        message: createArkeselOtpMessage(),
+        number: toArkeselNumber(phone),
+        sender_id: getSenderId(),
+        type: "numeric",
+      }),
     },
-    body: JSON.stringify({
-      expiry: getOtpExpiryMinutes(),
-      length: 6,
-      medium: "sms",
-      message: createArkeselOtpMessage(),
-      number: toArkeselNumber(phone),
-      sender_id: getSenderId(),
-      type: "numeric",
-    }),
-  });
+  );
   const providerResponse = await readJsonSafely(response);
   const record =
     providerResponse && typeof providerResponse === "object"
@@ -115,17 +133,20 @@ export async function verifyArkeselOtp(
   code: string,
 ): Promise<boolean> {
   const apiKey = requireEnv("ARKESEL_API_KEY");
-  const response = await fetch(`${getOtpBaseUrl()}/api/otp/verify`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "api-key": apiKey,
+  const response = await fetchOtpProvider(
+    `${getOtpBaseUrl()}/api/otp/verify`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": apiKey,
+      },
+      body: JSON.stringify({
+        code,
+        number: toArkeselNumber(phone),
+      }),
     },
-    body: JSON.stringify({
-      code,
-      number: toArkeselNumber(phone),
-    }),
-  });
+  );
   const providerResponse = await readJsonSafely(response);
   const record =
     providerResponse && typeof providerResponse === "object"
