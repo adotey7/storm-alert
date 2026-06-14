@@ -77,6 +77,10 @@ export const SubscriberScalarFieldEnum = {
   id: 'id',
   phone: 'phone',
   regionCode: 'regionCode',
+  forecastZoneCode: 'forecastZoneCode',
+  forecastLat: 'forecastLat',
+  forecastLon: 'forecastLon',
+  locationAccuracyM: 'locationAccuracyM',
   active: 'active',
   createdAt: 'createdAt',
   verifiedAt: 'verifiedAt'

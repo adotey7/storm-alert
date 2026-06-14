@@ -2,6 +2,11 @@ import "server-only";
 
 import type { Region } from "@/lib/regions";
 
+export type ForecastPoint = {
+  lat: number;
+  lon: number;
+};
+
 export type WeatherForecast = {
   latitude: number;
   longitude: number;
@@ -36,9 +41,15 @@ function assertWeatherForecast(value: unknown): asserts value is WeatherForecast
 export async function fetchRegionForecast(
   region: Region,
 ): Promise<WeatherForecast> {
+  return fetchPointForecast(region);
+}
+
+export async function fetchPointForecast(
+  point: ForecastPoint,
+): Promise<WeatherForecast> {
   const params = new URLSearchParams({
-    latitude: String(region.lat),
-    longitude: String(region.lon),
+    latitude: String(point.lat),
+    longitude: String(point.lon),
     hourly:
       "precipitation,precipitation_probability,wind_speed_10m,weather_code",
     forecast_days: "1",
