@@ -8,14 +8,19 @@ datasource db {
 }
 
 model Subscriber {
-  id         String    @id @default(cuid())
-  phone      String    @unique
-  regionCode String    @map("region_code")
-  active     Boolean   @default(false)
-  createdAt  DateTime  @default(now()) @map("created_at")
-  verifiedAt DateTime? @map("verified_at")
+  id                String    @id @default(cuid())
+  phone             String    @unique
+  regionCode        String    @map("region_code")
+  forecastZoneCode  String?   @map("forecast_zone_code")
+  forecastLat       Float?    @map("forecast_lat")
+  forecastLon       Float?    @map("forecast_lon")
+  locationAccuracyM Int?      @map("location_accuracy_m")
+  active            Boolean   @default(false)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  verifiedAt        DateTime? @map("verified_at")
 
   @@index([regionCode, active])
+  @@index([forecastZoneCode, active])
   @@map("subscribers")
 }
 

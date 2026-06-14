@@ -20,14 +20,32 @@ export type SubscriberModel = runtime.Types.Result.DefaultSelection<Prisma.$Subs
 
 export type AggregateSubscriber = {
   _count: SubscriberCountAggregateOutputType | null
+  _avg: SubscriberAvgAggregateOutputType | null
+  _sum: SubscriberSumAggregateOutputType | null
   _min: SubscriberMinAggregateOutputType | null
   _max: SubscriberMaxAggregateOutputType | null
+}
+
+export type SubscriberAvgAggregateOutputType = {
+  forecastLat: number | null
+  forecastLon: number | null
+  locationAccuracyM: number | null
+}
+
+export type SubscriberSumAggregateOutputType = {
+  forecastLat: number | null
+  forecastLon: number | null
+  locationAccuracyM: number | null
 }
 
 export type SubscriberMinAggregateOutputType = {
   id: string | null
   phone: string | null
   regionCode: string | null
+  forecastZoneCode: string | null
+  forecastLat: number | null
+  forecastLon: number | null
+  locationAccuracyM: number | null
   active: boolean | null
   createdAt: Date | null
   verifiedAt: Date | null
@@ -37,6 +55,10 @@ export type SubscriberMaxAggregateOutputType = {
   id: string | null
   phone: string | null
   regionCode: string | null
+  forecastZoneCode: string | null
+  forecastLat: number | null
+  forecastLon: number | null
+  locationAccuracyM: number | null
   active: boolean | null
   createdAt: Date | null
   verifiedAt: Date | null
@@ -46,6 +68,10 @@ export type SubscriberCountAggregateOutputType = {
   id: number
   phone: number
   regionCode: number
+  forecastZoneCode: number
+  forecastLat: number
+  forecastLon: number
+  locationAccuracyM: number
   active: number
   createdAt: number
   verifiedAt: number
@@ -53,10 +79,26 @@ export type SubscriberCountAggregateOutputType = {
 }
 
 
+export type SubscriberAvgAggregateInputType = {
+  forecastLat?: true
+  forecastLon?: true
+  locationAccuracyM?: true
+}
+
+export type SubscriberSumAggregateInputType = {
+  forecastLat?: true
+  forecastLon?: true
+  locationAccuracyM?: true
+}
+
 export type SubscriberMinAggregateInputType = {
   id?: true
   phone?: true
   regionCode?: true
+  forecastZoneCode?: true
+  forecastLat?: true
+  forecastLon?: true
+  locationAccuracyM?: true
   active?: true
   createdAt?: true
   verifiedAt?: true
@@ -66,6 +108,10 @@ export type SubscriberMaxAggregateInputType = {
   id?: true
   phone?: true
   regionCode?: true
+  forecastZoneCode?: true
+  forecastLat?: true
+  forecastLon?: true
+  locationAccuracyM?: true
   active?: true
   createdAt?: true
   verifiedAt?: true
@@ -75,6 +121,10 @@ export type SubscriberCountAggregateInputType = {
   id?: true
   phone?: true
   regionCode?: true
+  forecastZoneCode?: true
+  forecastLat?: true
+  forecastLon?: true
+  locationAccuracyM?: true
   active?: true
   createdAt?: true
   verifiedAt?: true
@@ -119,6 +169,18 @@ export type SubscriberAggregateArgs<ExtArgs extends runtime.Types.Extensions.Int
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: SubscriberAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: SubscriberSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: SubscriberMinAggregateInputType
@@ -149,6 +211,8 @@ export type SubscriberGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   _count?: SubscriberCountAggregateInputType | true
+  _avg?: SubscriberAvgAggregateInputType
+  _sum?: SubscriberSumAggregateInputType
   _min?: SubscriberMinAggregateInputType
   _max?: SubscriberMaxAggregateInputType
 }
@@ -157,10 +221,16 @@ export type SubscriberGroupByOutputType = {
   id: string
   phone: string
   regionCode: string
+  forecastZoneCode: string | null
+  forecastLat: number | null
+  forecastLon: number | null
+  locationAccuracyM: number | null
   active: boolean
   createdAt: Date
   verifiedAt: Date | null
   _count: SubscriberCountAggregateOutputType | null
+  _avg: SubscriberAvgAggregateOutputType | null
+  _sum: SubscriberSumAggregateOutputType | null
   _min: SubscriberMinAggregateOutputType | null
   _max: SubscriberMaxAggregateOutputType | null
 }
@@ -187,6 +257,10 @@ export type SubscriberWhereInput = {
   id?: Prisma.StringFilter<"Subscriber"> | string
   phone?: Prisma.StringFilter<"Subscriber"> | string
   regionCode?: Prisma.StringFilter<"Subscriber"> | string
+  forecastZoneCode?: Prisma.StringNullableFilter<"Subscriber"> | string | null
+  forecastLat?: Prisma.FloatNullableFilter<"Subscriber"> | number | null
+  forecastLon?: Prisma.FloatNullableFilter<"Subscriber"> | number | null
+  locationAccuracyM?: Prisma.IntNullableFilter<"Subscriber"> | number | null
   active?: Prisma.BoolFilter<"Subscriber"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Subscriber"> | Date | string
   verifiedAt?: Prisma.DateTimeNullableFilter<"Subscriber"> | Date | string | null
@@ -196,6 +270,10 @@ export type SubscriberOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   regionCode?: Prisma.SortOrder
+  forecastZoneCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  forecastLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  forecastLon?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationAccuracyM?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -208,6 +286,10 @@ export type SubscriberWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.SubscriberWhereInput[]
   NOT?: Prisma.SubscriberWhereInput | Prisma.SubscriberWhereInput[]
   regionCode?: Prisma.StringFilter<"Subscriber"> | string
+  forecastZoneCode?: Prisma.StringNullableFilter<"Subscriber"> | string | null
+  forecastLat?: Prisma.FloatNullableFilter<"Subscriber"> | number | null
+  forecastLon?: Prisma.FloatNullableFilter<"Subscriber"> | number | null
+  locationAccuracyM?: Prisma.IntNullableFilter<"Subscriber"> | number | null
   active?: Prisma.BoolFilter<"Subscriber"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Subscriber"> | Date | string
   verifiedAt?: Prisma.DateTimeNullableFilter<"Subscriber"> | Date | string | null
@@ -217,12 +299,18 @@ export type SubscriberOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   regionCode?: Prisma.SortOrder
+  forecastZoneCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  forecastLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  forecastLon?: Prisma.SortOrderInput | Prisma.SortOrder
+  locationAccuracyM?: Prisma.SortOrderInput | Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SubscriberCountOrderByAggregateInput
+  _avg?: Prisma.SubscriberAvgOrderByAggregateInput
   _max?: Prisma.SubscriberMaxOrderByAggregateInput
   _min?: Prisma.SubscriberMinOrderByAggregateInput
+  _sum?: Prisma.SubscriberSumOrderByAggregateInput
 }
 
 export type SubscriberScalarWhereWithAggregatesInput = {
@@ -232,6 +320,10 @@ export type SubscriberScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Subscriber"> | string
   phone?: Prisma.StringWithAggregatesFilter<"Subscriber"> | string
   regionCode?: Prisma.StringWithAggregatesFilter<"Subscriber"> | string
+  forecastZoneCode?: Prisma.StringNullableWithAggregatesFilter<"Subscriber"> | string | null
+  forecastLat?: Prisma.FloatNullableWithAggregatesFilter<"Subscriber"> | number | null
+  forecastLon?: Prisma.FloatNullableWithAggregatesFilter<"Subscriber"> | number | null
+  locationAccuracyM?: Prisma.IntNullableWithAggregatesFilter<"Subscriber"> | number | null
   active?: Prisma.BoolWithAggregatesFilter<"Subscriber"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Subscriber"> | Date | string
   verifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Subscriber"> | Date | string | null
@@ -241,6 +333,10 @@ export type SubscriberCreateInput = {
   id?: string
   phone: string
   regionCode: string
+  forecastZoneCode?: string | null
+  forecastLat?: number | null
+  forecastLon?: number | null
+  locationAccuracyM?: number | null
   active?: boolean
   createdAt?: Date | string
   verifiedAt?: Date | string | null
@@ -250,6 +346,10 @@ export type SubscriberUncheckedCreateInput = {
   id?: string
   phone: string
   regionCode: string
+  forecastZoneCode?: string | null
+  forecastLat?: number | null
+  forecastLon?: number | null
+  locationAccuracyM?: number | null
   active?: boolean
   createdAt?: Date | string
   verifiedAt?: Date | string | null
@@ -259,6 +359,10 @@ export type SubscriberUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   regionCode?: Prisma.StringFieldUpdateOperationsInput | string
+  forecastZoneCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forecastLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  forecastLon?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  locationAccuracyM?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -268,6 +372,10 @@ export type SubscriberUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   regionCode?: Prisma.StringFieldUpdateOperationsInput | string
+  forecastZoneCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forecastLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  forecastLon?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  locationAccuracyM?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -277,6 +385,10 @@ export type SubscriberCreateManyInput = {
   id?: string
   phone: string
   regionCode: string
+  forecastZoneCode?: string | null
+  forecastLat?: number | null
+  forecastLon?: number | null
+  locationAccuracyM?: number | null
   active?: boolean
   createdAt?: Date | string
   verifiedAt?: Date | string | null
@@ -286,6 +398,10 @@ export type SubscriberUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   regionCode?: Prisma.StringFieldUpdateOperationsInput | string
+  forecastZoneCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forecastLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  forecastLon?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  locationAccuracyM?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -295,6 +411,10 @@ export type SubscriberUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
   regionCode?: Prisma.StringFieldUpdateOperationsInput | string
+  forecastZoneCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forecastLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  forecastLon?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  locationAccuracyM?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -304,15 +424,29 @@ export type SubscriberCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   regionCode?: Prisma.SortOrder
+  forecastZoneCode?: Prisma.SortOrder
+  forecastLat?: Prisma.SortOrder
+  forecastLon?: Prisma.SortOrder
+  locationAccuracyM?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
+}
+
+export type SubscriberAvgOrderByAggregateInput = {
+  forecastLat?: Prisma.SortOrder
+  forecastLon?: Prisma.SortOrder
+  locationAccuracyM?: Prisma.SortOrder
 }
 
 export type SubscriberMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   regionCode?: Prisma.SortOrder
+  forecastZoneCode?: Prisma.SortOrder
+  forecastLat?: Prisma.SortOrder
+  forecastLon?: Prisma.SortOrder
+  locationAccuracyM?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
@@ -322,13 +456,43 @@ export type SubscriberMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   regionCode?: Prisma.SortOrder
+  forecastZoneCode?: Prisma.SortOrder
+  forecastLat?: Prisma.SortOrder
+  forecastLon?: Prisma.SortOrder
+  locationAccuracyM?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   verifiedAt?: Prisma.SortOrder
 }
 
+export type SubscriberSumOrderByAggregateInput = {
+  forecastLat?: Prisma.SortOrder
+  forecastLon?: Prisma.SortOrder
+  locationAccuracyM?: Prisma.SortOrder
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -349,6 +513,10 @@ export type SubscriberSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   id?: boolean
   phone?: boolean
   regionCode?: boolean
+  forecastZoneCode?: boolean
+  forecastLat?: boolean
+  forecastLon?: boolean
+  locationAccuracyM?: boolean
   active?: boolean
   createdAt?: boolean
   verifiedAt?: boolean
@@ -358,6 +526,10 @@ export type SubscriberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   phone?: boolean
   regionCode?: boolean
+  forecastZoneCode?: boolean
+  forecastLat?: boolean
+  forecastLon?: boolean
+  locationAccuracyM?: boolean
   active?: boolean
   createdAt?: boolean
   verifiedAt?: boolean
@@ -367,6 +539,10 @@ export type SubscriberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   phone?: boolean
   regionCode?: boolean
+  forecastZoneCode?: boolean
+  forecastLat?: boolean
+  forecastLon?: boolean
+  locationAccuracyM?: boolean
   active?: boolean
   createdAt?: boolean
   verifiedAt?: boolean
@@ -376,12 +552,16 @@ export type SubscriberSelectScalar = {
   id?: boolean
   phone?: boolean
   regionCode?: boolean
+  forecastZoneCode?: boolean
+  forecastLat?: boolean
+  forecastLon?: boolean
+  locationAccuracyM?: boolean
   active?: boolean
   createdAt?: boolean
   verifiedAt?: boolean
 }
 
-export type SubscriberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "regionCode" | "active" | "createdAt" | "verifiedAt", ExtArgs["result"]["subscriber"]>
+export type SubscriberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "phone" | "regionCode" | "forecastZoneCode" | "forecastLat" | "forecastLon" | "locationAccuracyM" | "active" | "createdAt" | "verifiedAt", ExtArgs["result"]["subscriber"]>
 
 export type $SubscriberPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Subscriber"
@@ -390,6 +570,10 @@ export type $SubscriberPayload<ExtArgs extends runtime.Types.Extensions.Internal
     id: string
     phone: string
     regionCode: string
+    forecastZoneCode: string | null
+    forecastLat: number | null
+    forecastLon: number | null
+    locationAccuracyM: number | null
     active: boolean
     createdAt: Date
     verifiedAt: Date | null
@@ -819,6 +1003,10 @@ export interface SubscriberFieldRefs {
   readonly id: Prisma.FieldRef<"Subscriber", 'String'>
   readonly phone: Prisma.FieldRef<"Subscriber", 'String'>
   readonly regionCode: Prisma.FieldRef<"Subscriber", 'String'>
+  readonly forecastZoneCode: Prisma.FieldRef<"Subscriber", 'String'>
+  readonly forecastLat: Prisma.FieldRef<"Subscriber", 'Float'>
+  readonly forecastLon: Prisma.FieldRef<"Subscriber", 'Float'>
+  readonly locationAccuracyM: Prisma.FieldRef<"Subscriber", 'Int'>
   readonly active: Prisma.FieldRef<"Subscriber", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Subscriber", 'DateTime'>
   readonly verifiedAt: Prisma.FieldRef<"Subscriber", 'DateTime'>

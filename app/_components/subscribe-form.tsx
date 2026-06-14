@@ -17,6 +17,10 @@ import {
   getGhanaPhoneValidationError,
   normalizeGhanaPhone,
 } from "@/lib/phone";
+import {
+  isWithinGhanaSupportedArea,
+  type SubscriberLocationInput,
+} from "@/lib/location";
 import { findNearestRegion, regions } from "@/lib/regions";
 import { readApiMessageResponse } from "@/lib/api-response";
 import CustomSelect from "./custom-select";
@@ -48,6 +52,9 @@ export default function SubscribeForm() {
   const [ussdCode, setUssdCode] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [geoLoading, setGeoLoading] = useState(false);
+  const [location, setLocation] = useState<SubscriberLocationInput | null>(
+    null,
+  );
 
   const selectedRegion = regions.find((region) => region.code === regionCode);
 
@@ -68,13 +75,31 @@ export default function SubscribeForm() {
     setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        if (!isWithinGhanaSupportedArea(latitude, longitude)) {
+          setLocation(null);
+          setStatus("error");
+          setMessage(
+            "StormAlert GH location alerts currently support Ghana only. Choose a Ghana region manually if you are outside Ghana.",
+          );
+          setGeoLoading(false);
+          return;
+        }
+
         const nearest = findNearestRegion(
-          position.coords.latitude,
-          position.coords.longitude,
+          latitude,
+          longitude,
         );
 
         if (nearest) {
           setRegionCode(nearest.code);
+          setLocation({
+            latitude,
+            longitude,
+            accuracy_m: Math.round(position.coords.accuracy),
+          });
           setFieldErrors((previous) => ({
             ...previous,
             region: undefined,
@@ -134,6 +159,7 @@ export default function SubscribeForm() {
         body: JSON.stringify({
           phone: normalizedPhone,
           region_code: regionCode,
+          ...(location ? { location } : {}),
         }),
       });
       const data = await readApiMessageResponse(response);
@@ -208,6 +234,7 @@ export default function SubscribeForm() {
               setSubmittedPhone("");
               setPhone("");
               setRegionCode("");
+              setLocation(null);
             }}
             className="text-sm font-medium text-earth underline-offset-2 hover:underline"
           >
@@ -283,6 +310,7 @@ export default function SubscribeForm() {
               value={regionCode}
               onChange={(value) => {
                 setRegionCode(value);
+                setLocation(null);
                 clearStatus();
 
                 if (fieldErrors.region) {
@@ -347,7 +375,11 @@ export default function SubscribeForm() {
             ) : (
               <Navigation size={12} aria-hidden="true" />
             )}
-            {selectedRegion ? `Selected: ${selectedRegion.name}` : "Use my location"}
+            {location && selectedRegion
+              ? `Selected: ${selectedRegion.name} local alerts`
+              : selectedRegion
+                ? `Selected: ${selectedRegion.name}`
+                : "Use my location"}
           </button>
 
           {status === "error" && message && (
