@@ -26,7 +26,7 @@ export function handleApiError(error: unknown): Response {
   }
 
   if (error instanceof OtpProviderError) {
-    return jsonError(error.message, 502);
+    return jsonError(error.message, error.status >= 500 ? error.status : 502);
   }
 
   if (error instanceof RateLimitExceededError) {
