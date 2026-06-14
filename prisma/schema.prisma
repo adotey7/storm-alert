@@ -37,6 +37,23 @@ model OtpCode {
   @@map("otp_codes")
 }
 
+model AlertAreaUpdateRequest {
+  id                String    @id @default(cuid())
+  phone             String
+  regionCode        String    @map("region_code")
+  forecastZoneCode  String?   @map("forecast_zone_code")
+  forecastLat       Float?    @map("forecast_lat")
+  forecastLon       Float?    @map("forecast_lon")
+  locationAccuracyM Int?      @map("location_accuracy_m")
+  expiresAt         DateTime  @map("expires_at")
+  consumedAt        DateTime? @map("consumed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  @@index([phone, consumedAt, expiresAt, createdAt])
+  @@index([expiresAt])
+  @@map("alert_area_update_requests")
+}
+
 model AlertLog {
   id              String   @id @default(cuid())
   regionCode      String   @map("region_code")

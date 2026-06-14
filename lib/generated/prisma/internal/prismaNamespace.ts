@@ -386,6 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Subscriber: 'Subscriber',
   OtpCode: 'OtpCode',
+  AlertAreaUpdateRequest: 'AlertAreaUpdateRequest',
   AlertLog: 'AlertLog',
   RateLimitEvent: 'RateLimitEvent'
 } as const
@@ -403,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "subscriber" | "otpCode" | "alertLog" | "rateLimitEvent"
+    modelProps: "subscriber" | "otpCode" | "alertAreaUpdateRequest" | "alertLog" | "rateLimitEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -552,6 +553,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OtpCodeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OtpCodeCountAggregateOutputType> | number
+        }
+      }
+    }
+    AlertAreaUpdateRequest: {
+      payload: Prisma.$AlertAreaUpdateRequestPayload<ExtArgs>
+      fields: Prisma.AlertAreaUpdateRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AlertAreaUpdateRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AlertAreaUpdateRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.AlertAreaUpdateRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AlertAreaUpdateRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>
+        }
+        findMany: {
+          args: Prisma.AlertAreaUpdateRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>[]
+        }
+        create: {
+          args: Prisma.AlertAreaUpdateRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>
+        }
+        createMany: {
+          args: Prisma.AlertAreaUpdateRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AlertAreaUpdateRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.AlertAreaUpdateRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>
+        }
+        update: {
+          args: Prisma.AlertAreaUpdateRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.AlertAreaUpdateRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AlertAreaUpdateRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AlertAreaUpdateRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.AlertAreaUpdateRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlertAreaUpdateRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.AlertAreaUpdateRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAlertAreaUpdateRequest>
+        }
+        groupBy: {
+          args: Prisma.AlertAreaUpdateRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlertAreaUpdateRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AlertAreaUpdateRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlertAreaUpdateRequestCountAggregateOutputType> | number
         }
       }
     }
@@ -768,6 +843,22 @@ export const OtpCodeScalarFieldEnum = {
 } as const
 
 export type OtpCodeScalarFieldEnum = (typeof OtpCodeScalarFieldEnum)[keyof typeof OtpCodeScalarFieldEnum]
+
+
+export const AlertAreaUpdateRequestScalarFieldEnum = {
+  id: 'id',
+  phone: 'phone',
+  regionCode: 'regionCode',
+  forecastZoneCode: 'forecastZoneCode',
+  forecastLat: 'forecastLat',
+  forecastLon: 'forecastLon',
+  locationAccuracyM: 'locationAccuracyM',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type AlertAreaUpdateRequestScalarFieldEnum = (typeof AlertAreaUpdateRequestScalarFieldEnum)[keyof typeof AlertAreaUpdateRequestScalarFieldEnum]
 
 
 export const AlertLogScalarFieldEnum = {
@@ -1026,6 +1117,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   subscriber?: Prisma.SubscriberOmit
   otpCode?: Prisma.OtpCodeOmit
+  alertAreaUpdateRequest?: Prisma.AlertAreaUpdateRequestOmit
   alertLog?: Prisma.AlertLogOmit
   rateLimitEvent?: Prisma.RateLimitEventOmit
 }
