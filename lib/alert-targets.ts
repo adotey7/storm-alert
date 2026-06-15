@@ -1,5 +1,11 @@
+import type { CatchmentConfig } from "@/lib/catchments";
+import {
+  catchments as defaultCatchments,
+  findCatchmentForPoint,
+} from "@/lib/catchments";
 import type { Region } from "@/lib/regions";
 import { findNearestRegion, regions as defaultRegions } from "@/lib/regions";
+import type { ForecastPoint } from "@/lib/weather-client";
 
 export type ActiveSubscriberForAlert = {
   phone: string;
@@ -9,17 +15,21 @@ export type ActiveSubscriberForAlert = {
   forecastLon: number | null;
 };
 
-export type AlertTargetKind = "region" | "forecast-zone";
+export type AlertTargetKind = "region" | "forecast-zone" | "catchment";
+
+export type AlertTargetForecastPoint = {
+  name: string;
+  role: "local" | "upstream";
+  point: ForecastPoint;
+};
 
 export type AlertTarget = {
   code: string;
   kind: AlertTargetKind;
   displayName: string;
   regionCode: string;
-  forecastPoint: {
-    lat: number;
-    lon: number;
-  };
+  forecastPoint: ForecastPoint;
+  forecastPoints: AlertTargetForecastPoint[];
   evaluationRegion: Region;
   subscribers: {
     phone: string;
@@ -50,9 +60,11 @@ function hasCompleteForecastZone(
 export function createAlertTargets(
   subscribers: ActiveSubscriberForAlert[],
   configuredRegions = defaultRegions,
+  configuredCatchments: CatchmentConfig[] = defaultCatchments,
 ): AlertTarget[] {
   const legacySubscribersByRegion = new Map<string, { phone: string }[]>();
   const zoneTargetsByCode = new Map<string, AlertTarget>();
+  const catchmentTargetsByCode = new Map<string, AlertTarget>();
 
   for (const subscriber of subscribers) {
     const selectedRegion = getRegionByCodeFromList(
@@ -61,6 +73,66 @@ export function createAlertTargets(
     );
 
     if (hasCompleteForecastZone(subscriber)) {
+      const subscriberPoint = {
+        lat: subscriber.forecastLat,
+        lon: subscriber.forecastLon,
+      };
+      const catchment = findCatchmentForPoint(
+        subscriberPoint,
+        configuredCatchments,
+      );
+
+      if (catchment) {
+        const catchmentRegion = getRegionByCodeFromList(
+          catchment.regionCode,
+          configuredRegions,
+        );
+
+        if (!catchmentRegion) {
+          continue;
+        }
+
+        const existingTarget = catchmentTargetsByCode.get(catchment.code);
+
+        if (existingTarget) {
+          existingTarget.subscribers.push({ phone: subscriber.phone });
+          continue;
+        }
+
+        const forecastPoint = catchment.impactCenter;
+        catchmentTargetsByCode.set(catchment.code, {
+          code: catchment.code,
+          kind: "catchment",
+          displayName: catchment.displayName,
+          regionCode: catchment.regionCode,
+          forecastPoint,
+          forecastPoints: [
+            {
+              name: catchment.displayName,
+              role: "local",
+              point: forecastPoint,
+            },
+            ...catchment.upstreamWatchPoints.map((point) => ({
+              name: point.name,
+              role: "upstream" as const,
+              point: {
+                lat: point.lat,
+                lon: point.lon,
+              },
+            })),
+          ],
+          evaluationRegion: {
+            ...catchmentRegion,
+            code: catchment.code,
+            name: catchment.displayName,
+            lat: forecastPoint.lat,
+            lon: forecastPoint.lon,
+          },
+          subscribers: [{ phone: subscriber.phone }],
+        });
+        continue;
+      }
+
       const zoneRegion =
         selectedRegion ??
         findNearestRegion(subscriber.forecastLat, subscriber.forecastLon);
@@ -86,6 +158,16 @@ export function createAlertTargets(
           lat: subscriber.forecastLat,
           lon: subscriber.forecastLon,
         },
+        forecastPoints: [
+          {
+            name: displayName,
+            role: "local",
+            point: {
+              lat: subscriber.forecastLat,
+              lon: subscriber.forecastLon,
+            },
+          },
+        ],
         evaluationRegion: {
           ...zoneRegion,
           code: subscriber.forecastZoneCode,
@@ -117,9 +199,23 @@ export function createAlertTargets(
       lat: region.lat,
       lon: region.lon,
     },
+    forecastPoints: [
+      {
+        name: region.name,
+        role: "local" as const,
+        point: {
+          lat: region.lat,
+          lon: region.lon,
+        },
+      },
+    ],
     evaluationRegion: region,
     subscribers: legacySubscribersByRegion.get(region.code) ?? [],
   }));
 
-  return [...regionTargets, ...zoneTargetsByCode.values()];
+  return [
+    ...regionTargets,
+    ...catchmentTargetsByCode.values(),
+    ...zoneTargetsByCode.values(),
+  ];
 }

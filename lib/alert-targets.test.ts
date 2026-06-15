@@ -81,6 +81,75 @@ describe("alert targets", () => {
     ]);
   });
 
+  it("routes Christian Village coordinate subscribers into the Odaw catchment", () => {
+    const targets = createAlertTargets(
+      [
+        {
+          phone: "+233244111111",
+          regionCode: "accra",
+          forecastZoneCode: "gh-grid-p5p65-m0p20",
+          forecastLat: 5.65,
+          forecastLon: -0.2,
+        },
+        {
+          phone: "+233244222222",
+          regionCode: "accra",
+          forecastZoneCode: "gh-grid-p5p65-m0p20",
+          forecastLat: 5.65,
+          forecastLon: -0.2,
+        },
+      ],
+      testRegions,
+    );
+
+    const catchmentTarget = targets.find(
+      (target) => target.code === "odaw-christian-village",
+    );
+    const zoneTarget = targets.find(
+      (target) => target.code === "gh-grid-p5p65-m0p20",
+    );
+
+    expect(zoneTarget).toBeUndefined();
+    expect(catchmentTarget).toMatchObject({
+      kind: "catchment",
+      displayName: "Odaw/Dome Bridge drainage area",
+      regionCode: "accra",
+      subscribers: [
+        { phone: "+233244111111" },
+        { phone: "+233244222222" },
+      ],
+    });
+    expect(catchmentTarget?.forecastPoints).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Aburi Ridge", role: "upstream" }),
+        expect.objectContaining({ name: "Ashongman", role: "upstream" }),
+        expect.objectContaining({ name: "Madina", role: "upstream" }),
+      ]),
+    );
+  });
+
+  it("leaves coordinates outside the catchment as normal forecast zones", () => {
+    const targets = createAlertTargets(
+      [
+        {
+          phone: "+233244111111",
+          regionCode: "accra",
+          forecastZoneCode: "gh-grid-p5p60-m0p20",
+          forecastLat: 5.6,
+          forecastLon: -0.2,
+        },
+      ],
+      testRegions,
+    );
+
+    expect(
+      targets.find((target) => target.code === "odaw-christian-village"),
+    ).toBeUndefined();
+    expect(
+      targets.find((target) => target.code === "gh-grid-p5p60-m0p20")?.kind,
+    ).toBe("forecast-zone");
+  });
+
   it("still creates region targets with empty subscriber lists", () => {
     const targets = createAlertTargets([], testRegions);
 

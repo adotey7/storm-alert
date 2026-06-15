@@ -382,6 +382,12 @@ export default function SubscribeForm() {
                 : "Use my location"}
           </button>
 
+          {location && (
+            <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">
+              Includes nearby upstream flood-risk signals where available.
+            </p>
+          )}
+
           {status === "error" && message && (
             <p
               id={STATUS_MESSAGE_ID}
