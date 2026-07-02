@@ -13,6 +13,12 @@ export type AlertEvaluation = {
   };
 };
 
+export type AlertForecastSource = {
+  name: string;
+  role: "local" | "upstream";
+  forecast: WeatherForecast;
+};
+
 function max(values: number[]): number {
   return values.length > 0 ? Math.max(...values) : 0;
 }
@@ -100,12 +106,85 @@ export function evaluateAlertRisk(
   };
 }
 
+function mergeMetrics(
+  evaluations: AlertEvaluation[],
+): AlertEvaluation["metrics"] {
+  return {
+    maxPrecipitation1hMm: max(
+      evaluations.map((evaluation) => evaluation.metrics.maxPrecipitation1hMm),
+    ),
+    maxPrecipitation3hMm: max(
+      evaluations.map((evaluation) => evaluation.metrics.maxPrecipitation3hMm),
+    ),
+    maxPrecipitationProbability: max(
+      evaluations.map(
+        (evaluation) => evaluation.metrics.maxPrecipitationProbability,
+      ),
+    ),
+    maxWindSpeedKmh: max(
+      evaluations.map((evaluation) => evaluation.metrics.maxWindSpeedKmh),
+    ),
+    matchedWeatherCodes: [
+      ...new Set(
+        evaluations.flatMap(
+          (evaluation) => evaluation.metrics.matchedWeatherCodes,
+        ),
+      ),
+    ],
+  };
+}
+
+function isFloodRelevantReason(reason: string): boolean {
+  return !reason.startsWith("wind speed ");
+}
+
+export function evaluateCatchmentAlertRisk(
+  region: Region,
+  sources: AlertForecastSource[],
+  horizonHours = 6,
+): AlertEvaluation {
+  const sourceEvaluations = sources.map((source) => ({
+    source,
+    evaluation: evaluateAlertRisk(region, source.forecast, horizonHours),
+  }));
+  const reasons = sourceEvaluations.flatMap(({ source, evaluation }) =>
+    evaluation.reasons.filter(isFloodRelevantReason).map((reason) =>
+      source.role === "upstream"
+        ? `upstream ${source.name}: ${reason}`
+        : `local ${source.name}: ${reason}`,
+    ),
+  );
+
+  return {
+    triggered: reasons.length > 0,
+    reasons,
+    metrics: mergeMetrics(
+      sourceEvaluations.map(({ evaluation }) => evaluation),
+    ),
+  };
+}
+
 export function createAlertMessage(
   regionName: string,
   evaluation: AlertEvaluation,
   unsubscribeUrl?: string,
+  options: {
+    kind?: "weather" | "catchment";
+    catchmentWaterway?: string;
+  } = {},
 ): string {
   const unsubscribeText = unsubscribeUrl ? ` Opt out: ${unsubscribeUrl}` : "";
+
+  if (options.kind === "catchment") {
+    const waterway = options.catchmentWaterway ?? regionName;
+    const drainageRisk = evaluation.reasons.some((reason) =>
+      reason.startsWith("upstream "),
+    )
+      ? `Heavy upstream rain may affect ${waterway} drainage.`
+      : `Heavy rain may affect ${waterway} drainage.`;
+
+    return `StormAlert GH: Flood risk detected for ${regionName}. ${evaluation.reasons[0]}. ${drainageRisk} Stay alert and avoid flood-prone areas.${unsubscribeText}`;
+  }
 
   return `StormAlert GH: Weather risk detected for ${regionName}. ${evaluation.reasons[0]}. Stay alert and avoid flood-prone areas.${unsubscribeText}`;
 }
