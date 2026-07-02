@@ -27,6 +27,7 @@ export type AlertTarget = {
   code: string;
   kind: AlertTargetKind;
   displayName: string;
+  catchmentWaterway?: string;
   regionCode: string;
   forecastPoint: ForecastPoint;
   forecastPoints: AlertTargetForecastPoint[];
@@ -104,6 +105,7 @@ export function createAlertTargets(
           code: catchment.code,
           kind: "catchment",
           displayName: catchment.displayName,
+          catchmentWaterway: catchment.waterwayName,
           regionCode: catchment.regionCode,
           forecastPoint,
           forecastPoints: [

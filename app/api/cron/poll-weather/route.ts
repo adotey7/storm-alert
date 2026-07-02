@@ -11,6 +11,7 @@ import { getNumberEnv, requireEnv } from "@/lib/env";
 import { getPrisma } from "@/lib/prisma";
 import { regions } from "@/lib/regions";
 import { sendSms } from "@/lib/sms-dispatcher";
+import type { WeatherForecast } from "@/lib/weather-client";
 import { fetchPointForecast } from "@/lib/weather-client";
 
 export const runtime = "nodejs";
@@ -25,6 +26,14 @@ type RegionPollResult = {
   reasons: string[];
 };
 
+type ForecastPointResult = AlertTarget["forecastPoints"][number] & {
+  forecast: WeatherForecast;
+};
+
+function describeForecastError(reason: unknown): string {
+  return reason instanceof Error ? reason.message : "Unknown forecast error.";
+}
+
 async function evaluateTarget(target: AlertTarget) {
   if (target.kind !== "catchment") {
     const forecast = await fetchPointForecast(target.forecastPoint);
@@ -37,12 +46,40 @@ async function evaluateTarget(target: AlertTarget) {
     };
   }
 
-  const forecasts = await Promise.all(
+  const results = await Promise.allSettled<ForecastPointResult>(
     target.forecastPoints.map(async (forecastPoint) => ({
       ...forecastPoint,
       forecast: await fetchPointForecast(forecastPoint.point),
     })),
   );
+  const forecasts: ForecastPointResult[] = [];
+  const failedPoints: Array<{
+    name: string;
+    role: "local" | "upstream";
+    point: AlertTarget["forecastPoint"];
+    error: string;
+  }> = [];
+
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled") {
+      forecasts.push(result.value);
+      return;
+    }
+
+    const forecastPoint = target.forecastPoints[index];
+    failedPoints.push({
+      name: forecastPoint.name,
+      role: forecastPoint.role,
+      point: forecastPoint.point,
+      error: describeForecastError(result.reason),
+    });
+  });
+
+  if (forecasts.length === 0) {
+    throw new Error(
+      `All forecast fetches failed for catchment target ${target.code}`,
+    );
+  }
 
   return {
     evaluation: evaluateCatchmentAlertRisk(
@@ -60,6 +97,7 @@ async function evaluateTarget(target: AlertTarget) {
         point: forecastPoint.point,
         hourly: forecastPoint.forecast.hourly,
       })),
+      ...(failedPoints.length > 0 ? { failedPoints } : {}),
     },
   };
 }
@@ -139,7 +177,13 @@ export async function GET(request: Request) {
             target.displayName,
             evaluation,
             unsubscribeUrl,
-            { kind: target.kind === "catchment" ? "catchment" : "weather" },
+            {
+              kind: target.kind === "catchment" ? "catchment" : "weather",
+              catchmentWaterway:
+                target.kind === "catchment"
+                  ? target.catchmentWaterway
+                  : undefined,
+            },
           ),
         });
         alertsSent += 1;
@@ -156,6 +200,7 @@ export async function GET(request: Request) {
               kind: target.kind,
               regionCode: target.regionCode,
               displayName: target.displayName,
+              catchmentWaterway: target.catchmentWaterway,
               forecastPoint: target.forecastPoint,
               forecastPoints: target.forecastPoints,
             },

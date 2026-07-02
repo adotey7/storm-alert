@@ -134,6 +134,10 @@ function mergeMetrics(
   };
 }
 
+function isFloodRelevantReason(reason: string): boolean {
+  return !reason.startsWith("wind speed ");
+}
+
 export function evaluateCatchmentAlertRisk(
   region: Region,
   sources: AlertForecastSource[],
@@ -144,7 +148,7 @@ export function evaluateCatchmentAlertRisk(
     evaluation: evaluateAlertRisk(region, source.forecast, horizonHours),
   }));
   const reasons = sourceEvaluations.flatMap(({ source, evaluation }) =>
-    evaluation.reasons.map((reason) =>
+    evaluation.reasons.filter(isFloodRelevantReason).map((reason) =>
       source.role === "upstream"
         ? `upstream ${source.name}: ${reason}`
         : `local ${source.name}: ${reason}`,
@@ -166,12 +170,20 @@ export function createAlertMessage(
   unsubscribeUrl?: string,
   options: {
     kind?: "weather" | "catchment";
+    catchmentWaterway?: string;
   } = {},
 ): string {
   const unsubscribeText = unsubscribeUrl ? ` Opt out: ${unsubscribeUrl}` : "";
 
   if (options.kind === "catchment") {
-    return `StormAlert GH: Flood risk detected for ${regionName}. ${evaluation.reasons[0]}. Heavy upstream rain may affect Odaw/Dome Bridge drainage. Stay alert and avoid flood-prone areas.${unsubscribeText}`;
+    const waterway = options.catchmentWaterway ?? regionName;
+    const drainageRisk = evaluation.reasons.some((reason) =>
+      reason.startsWith("upstream "),
+    )
+      ? `Heavy upstream rain may affect ${waterway} drainage.`
+      : `Heavy rain may affect ${waterway} drainage.`;
+
+    return `StormAlert GH: Flood risk detected for ${regionName}. ${evaluation.reasons[0]}. ${drainageRisk} Stay alert and avoid flood-prone areas.${unsubscribeText}`;
   }
 
   return `StormAlert GH: Weather risk detected for ${regionName}. ${evaluation.reasons[0]}. Stay alert and avoid flood-prone areas.${unsubscribeText}`;

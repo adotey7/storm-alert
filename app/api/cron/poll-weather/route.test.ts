@@ -48,9 +48,16 @@ function createForecast(precipitation: number[] = [0, 1, 2, 1, 0, 0]) {
   };
 }
 
+function isPoint(point: { lat: number; lon: number }, lat: number, lon: number) {
+  return Math.abs(point.lat - lat) < 0.0001 && Math.abs(point.lon - lon) < 0.0001;
+}
+
 function isAburiPoint(point: { lat: number; lon: number }) {
-  return Math.abs(point.lat - 5.848) < 0.0001 &&
-    Math.abs(point.lon - -0.1745) < 0.0001;
+  return isPoint(point, 5.848, -0.1745);
+}
+
+function isMadinaPoint(point: { lat: number; lon: number }) {
+  return isPoint(point, 5.6833, -0.1667);
 }
 
 describe("poll weather cron route", () => {
@@ -70,7 +77,11 @@ describe("poll weather cron route", () => {
       },
     ]);
     fetchPointForecast.mockImplementation((point: { lat: number; lon: number }) =>
-      Promise.resolve(isAburiPoint(point) ? createForecast([0, 24, 0, 0, 0, 0]) : createForecast()),
+      Promise.resolve(
+        isAburiPoint(point)
+          ? createForecast([0, 24, 0, 0, 0, 0])
+          : createForecast(),
+      ),
     );
     sendSms.mockResolvedValue({ sent: true, skipped: false });
   });
@@ -114,10 +125,60 @@ describe("poll weather cron route", () => {
         ),
       }),
     );
+    expect(sendSms).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          "Heavy upstream rain may affect Odaw/Dome Bridge drainage.",
+        ),
+      }),
+    );
     expect(prisma.alertLog.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         regionCode: "odaw-christian-village",
         recipientsCount: 1,
+      }),
+    });
+  });
+
+  it("records failed catchment watch points without dropping successful forecasts", async () => {
+    fetchPointForecast.mockImplementation((point: { lat: number; lon: number }) => {
+      if (isMadinaPoint(point)) {
+        return Promise.reject(new Error("Madina forecast unavailable"));
+      }
+
+      return Promise.resolve(
+        isAburiPoint(point)
+          ? createForecast([0, 24, 0, 0, 0, 0])
+          : createForecast(),
+      );
+    });
+
+    const { GET } = await import("./route");
+    const response = await GET(cronRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          target_code: "odaw-christian-village",
+          triggered: true,
+          recipients: 1,
+        }),
+      ]),
+    );
+    expect(sendSms).toHaveBeenCalledTimes(1);
+    expect(prisma.alertLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        weatherSnapshot: expect.objectContaining({
+          failedPoints: [
+            expect.objectContaining({
+              name: "Madina",
+              role: "upstream",
+              error: "Madina forecast unavailable",
+            }),
+          ],
+        }),
       }),
     });
   });

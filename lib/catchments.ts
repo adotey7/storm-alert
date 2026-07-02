@@ -7,6 +7,7 @@ export type CatchmentWatchPoint = ForecastPoint & {
 export type CatchmentConfig = {
   code: string;
   displayName: string;
+  waterwayName: string;
   regionCode: string;
   impactCenter: ForecastPoint;
   impactRadiusKm: number;
@@ -17,6 +18,7 @@ export const catchments = [
   {
     code: "odaw-christian-village",
     displayName: "Odaw/Dome Bridge drainage area",
+    waterwayName: "Odaw/Dome Bridge",
     regionCode: "accra",
     impactCenter: {
       lat: 5.63333,

@@ -113,6 +113,7 @@ describe("alert targets", () => {
     expect(catchmentTarget).toMatchObject({
       kind: "catchment",
       displayName: "Odaw/Dome Bridge drainage area",
+      catchmentWaterway: "Odaw/Dome Bridge",
       regionCode: "accra",
       subscribers: [
         { phone: "+233244111111" },

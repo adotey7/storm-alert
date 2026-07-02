@@ -142,6 +142,27 @@ describe("alert evaluator", () => {
     );
   });
 
+  it("does not trigger catchment flood alerts from wind-only conditions", () => {
+    const evaluation = evaluateCatchmentAlertRisk(testRegion, [
+      {
+        name: "Odaw/Dome Bridge drainage area",
+        role: "local",
+        forecast: createForecast({
+          wind_speed_10m: [12, 61, 14, 12, 10, 8],
+        }),
+      },
+      {
+        name: "Ashongman",
+        role: "upstream",
+        forecast: createForecast(),
+      },
+    ]);
+
+    expect(evaluation.triggered).toBe(false);
+    expect(evaluation.reasons).toEqual([]);
+    expect(evaluation.metrics.maxWindSpeedKmh).toBe(61);
+  });
+
   it("does not trigger catchment alerts below local and upstream thresholds", () => {
     const evaluation = evaluateCatchmentAlertRisk(testRegion, [
       {
@@ -171,17 +192,61 @@ describe("alert evaluator", () => {
       },
     ]);
 
+    const options = {
+      kind: "catchment" as const,
+      catchmentWaterway: "Odaw/Dome Bridge",
+    };
     expect(
-      createAlertMessage("Odaw/Dome Bridge drainage area", evaluation, undefined, {
-        kind: "catchment",
-      }),
+      createAlertMessage("Odaw/Dome Bridge drainage area", evaluation, undefined, options),
     ).toContain(
       "Flood risk detected for Odaw/Dome Bridge drainage area.",
     );
     expect(
+      createAlertMessage("Odaw/Dome Bridge drainage area", evaluation, undefined, options),
+    ).toContain("Heavy upstream rain may affect Odaw/Dome Bridge drainage.");
+  });
+
+  it("uses catchmentWaterway when provided for the drainage reference", () => {
+    const evaluation = evaluateCatchmentAlertRisk(testRegion, [
+      {
+        name: "Aburi Ridge",
+        role: "upstream",
+        forecast: createForecast({
+          precipitation: [0, 24, 0, 0, 0, 0],
+        }),
+      },
+    ]);
+
+    expect(
       createAlertMessage("Odaw/Dome Bridge drainage area", evaluation, undefined, {
         kind: "catchment",
+        catchmentWaterway: "Odaw/Dome Bridge",
       }),
     ).toContain("Heavy upstream rain may affect Odaw/Dome Bridge drainage.");
+  });
+
+  it("does not mention upstream rain for local-only catchment risk", () => {
+    const evaluation = evaluateCatchmentAlertRisk(testRegion, [
+      {
+        name: "Odaw/Dome Bridge drainage area",
+        role: "local",
+        forecast: createForecast({
+          precipitation: [0, 18, 17, 17, 0, 0],
+        }),
+      },
+    ]);
+
+    const message = createAlertMessage(
+      "Odaw/Dome Bridge drainage area",
+      evaluation,
+      undefined,
+      {
+        kind: "catchment",
+        catchmentWaterway: "Odaw/Dome Bridge",
+      },
+    );
+
+    expect(message).toContain("Heavy rain may affect Odaw/Dome Bridge drainage.");
+    expect(message).not.toContain("Heavy upstream rain may affect");
   });
 });
