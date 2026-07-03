@@ -2,6 +2,7 @@ import {
   createAlertMessage,
   evaluateAlertRisk,
   evaluateCatchmentAlertRisk,
+  type AlertEvaluation,
 } from "@/lib/alert-evaluator";
 import { createAlertTargets } from "@/lib/alert-targets";
 import type { AlertTarget } from "@/lib/alert-targets";
@@ -34,18 +35,26 @@ function describeForecastError(reason: unknown): string {
   return reason instanceof Error ? reason.message : "Unknown forecast error.";
 }
 
-async function evaluateTarget(target: AlertTarget) {
-  if (target.kind !== "catchment") {
-    const forecast = await fetchPointForecast(target.forecastPoint);
-
-    return {
-      evaluation: evaluateAlertRisk(target.evaluationRegion, forecast),
-      weatherSnapshot: {
-        hourly: forecast.hourly,
-      },
-    };
-  }
-
+/**
+ * Fetches every forecast point for a target with fault tolerance.
+ *
+ * Previous implementation awaited a bare `fetchPointForecast` for region and
+ * forecast-zone targets. A single transient Open-Meteo failure (rate limit,
+ * network reset) therefore threw out of the whole cron run and turned into a
+ * 500 for the entire job. We now settle every point and degrade the affected
+ * target instead of failing the run.
+ */
+async function fetchTargetForecasts(
+  target: AlertTarget,
+): Promise<{
+  forecasts: ForecastPointResult[];
+  failedPoints: Array<{
+    name: string;
+    role: "local" | "upstream";
+    point: AlertTarget["forecastPoint"];
+    error: string;
+  }>;
+}> {
   const results = await Promise.allSettled<ForecastPointResult>(
     target.forecastPoints.map(async (forecastPoint) => ({
       ...forecastPoint,
@@ -75,28 +84,82 @@ async function evaluateTarget(target: AlertTarget) {
     });
   });
 
-  if (forecasts.length === 0) {
-    throw new Error(
-      `All forecast fetches failed for catchment target ${target.code}`,
-    );
-  }
+  return { forecasts, failedPoints };
+}
+
+function degradedEvaluation(
+  target: AlertTarget,
+  failedPoints: Array<{
+    name: string;
+    role: "local" | "upstream";
+    point: AlertTarget["forecastPoint"];
+    error: string;
+  }>,
+): AlertEvaluation {
+  const reasons = failedPoints.map(
+    (failed) => `forecast unavailable for ${failed.name}: ${failed.error}`,
+  );
+  console.error(
+    `[poll-weather] forecasts unavailable for target ${target.code}:`,
+    failedPoints,
+  );
 
   return {
-    evaluation: evaluateCatchmentAlertRisk(
-      target.evaluationRegion,
-      forecasts.map((forecastPoint) => ({
-        name: forecastPoint.name,
-        role: forecastPoint.role,
-        forecast: forecastPoint.forecast,
-      })),
-    ),
+    triggered: false,
+    reasons,
+    metrics: {
+      maxPrecipitation1hMm: 0,
+      maxPrecipitation3hMm: 0,
+      maxPrecipitationProbability: 0,
+      maxWindSpeedKmh: 0,
+      matchedWeatherCodes: [],
+    },
+  };
+}
+
+async function evaluateTarget(target: AlertTarget) {
+  const { forecasts, failedPoints } = await fetchTargetForecasts(target);
+
+  if (forecasts.length === 0) {
+    const evaluation = degradedEvaluation(target, failedPoints);
+
+    return {
+      evaluation,
+      weatherSnapshot: {
+        points: [],
+        failedPoints,
+      },
+    };
+  }
+
+  if (target.kind === "catchment") {
+    return {
+      evaluation: evaluateCatchmentAlertRisk(
+        target.evaluationRegion,
+        forecasts.map((forecastPoint) => ({
+          name: forecastPoint.name,
+          role: forecastPoint.role,
+          forecast: forecastPoint.forecast,
+        })),
+      ),
+      weatherSnapshot: {
+        points: forecasts.map((forecastPoint) => ({
+          name: forecastPoint.name,
+          role: forecastPoint.role,
+          point: forecastPoint.point,
+          hourly: forecastPoint.forecast.hourly,
+        })),
+        ...(failedPoints.length > 0 ? { failedPoints } : {}),
+      },
+    };
+  }
+
+  const [forecast] = forecasts;
+
+  return {
+    evaluation: evaluateAlertRisk(target.evaluationRegion, forecast.forecast),
     weatherSnapshot: {
-      points: forecasts.map((forecastPoint) => ({
-        name: forecastPoint.name,
-        role: forecastPoint.role,
-        point: forecastPoint.point,
-        hourly: forecastPoint.forecast.hourly,
-      })),
+      hourly: forecast.forecast.hourly,
       ...(failedPoints.length > 0 ? { failedPoints } : {}),
     },
   };
@@ -228,6 +291,7 @@ export async function GET(request: Request) {
       results,
     });
   } catch (error) {
+    console.error("[poll-weather] cron run failed:", error);
     return handleApiError(error);
   }
 }

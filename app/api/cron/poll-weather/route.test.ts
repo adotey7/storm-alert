@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.spyOn(console, "error").mockImplementation(() => undefined);
+
 const { fetchPointForecast, prisma, sendSms } = vi.hoisted(() => ({
   fetchPointForecast: vi.fn(),
   prisma: {
@@ -58,6 +60,10 @@ function isAburiPoint(point: { lat: number; lon: number }) {
 
 function isMadinaPoint(point: { lat: number; lon: number }) {
   return isPoint(point, 5.6833, -0.1667);
+}
+
+function isAccraRegionPoint(point: { lat: number; lon: number }) {
+  return isPoint(point, 5.6037, -0.187);
 }
 
 describe("poll weather cron route", () => {
@@ -181,5 +187,53 @@ describe("poll weather cron route", () => {
         }),
       }),
     });
+  });
+
+  it("degrades a failed region forecast instead of failing the whole cron run", async () => {
+    fetchPointForecast.mockImplementation((point: { lat: number; lon: number }) => {
+      if (isAccraRegionPoint(point)) {
+        return Promise.reject(new Error("Open-Meteo request failed with 503."));
+      }
+
+      return Promise.resolve(
+        isAburiPoint(point)
+          ? createForecast([0, 24, 0, 0, 0, 0])
+          : createForecast(),
+      );
+    });
+
+    const { GET } = await import("./route");
+    const response = await GET(cronRequest());
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+
+    const accraResult = body.results.find(
+      (result: { target_code: string }) => result.target_code === "accra",
+    );
+
+    expect(accraResult).toEqual(
+      expect.objectContaining({
+        target_code: "accra",
+        target_kind: "region",
+        triggered: false,
+        skipped_by_cooldown: false,
+      }),
+    );
+    expect(accraResult.reasons).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("forecast unavailable for Greater Accra"),
+      ]),
+    );
+
+    // The catchment alert still fires; the failed region did not abort the run.
+    expect(sendSms).toHaveBeenCalledTimes(1);
+    expect(prisma.alertLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          regionCode: "odaw-christian-village",
+        }),
+      }),
+    );
   });
 });
