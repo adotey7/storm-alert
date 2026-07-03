@@ -12,6 +12,24 @@ export function jsonError(
   return Response.json({ error: message }, { status, headers });
 }
 
+/**
+ * Builds the response for an unexpected error and, crucially, records the real
+ * cause to the server log. The previous implementation swallowed the error and
+ * returned a generic 500 with no logging, which made production failures (e.g.
+ * a transient upstream forecast fetch, a Prisma write error, an SMS provider
+ * network fault) invisible in observability tooling. Keep this logging.
+ */
+function handleUnexpectedError(error: unknown): Response {
+  console.error("[api] unexpected error:", error);
+  const errorName =
+    error instanceof Error && error.name ? error.name : "UnknownError";
+
+  return Response.json(
+    { error: "Unexpected server error.", errorName },
+    { status: 500 },
+  );
+}
+
 export function handleApiError(error: unknown): Response {
   if (error instanceof ZodError) {
     return jsonError("Invalid request payload.", 400);
@@ -35,5 +53,5 @@ export function handleApiError(error: unknown): Response {
     });
   }
 
-  return jsonError("Unexpected server error.", 500);
+  return handleUnexpectedError(error);
 }

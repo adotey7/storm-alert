@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { handleApiError } from "./api-errors";
 import { OtpProviderError } from "./arkesel-otp";
 
@@ -21,5 +21,25 @@ describe("handleApiError", () => {
 
     expect(response.status).toBe(502);
     expect(body.error).toBe("OTP delivery failed.");
+  });
+
+  it("logs and surfaces the error name for unexpected errors", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const response = handleApiError(
+      new TypeError("fetch failed: ECONNRESET to upstream forecast"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.error).toBe("Unexpected server error.");
+    expect(body.errorName).toBe("TypeError");
+    expect(consoleError).toHaveBeenCalledWith(
+      "[api] unexpected error:",
+      expect.any(TypeError),
+    );
+
+    consoleError.mockRestore();
   });
 });
