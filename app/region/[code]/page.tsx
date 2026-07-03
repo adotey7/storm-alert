@@ -53,7 +53,13 @@ export default async function RegionDetailPage({ params }: Props) {
           <h2 className="mb-3 text-left text-[13px] font-semibold uppercase tracking-wide text-ink-muted">
             Next hours
           </h2>
-          <HourlyForecastStrip forecast={forecast} />
+          {forecast ? (
+            <HourlyForecastStrip forecast={forecast} />
+          ) : (
+            <p className="rounded-lg border border-border bg-canvas px-3 py-3 text-[14px] text-ink-secondary">
+              Forecast temporarily unavailable.
+            </p>
+          )}
         </section>
 
         {summary.reasons.length > 0 && (

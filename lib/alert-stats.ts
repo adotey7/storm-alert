@@ -17,34 +17,50 @@ export type RecentAlert = {
 };
 
 export async function getAlertStats(): Promise<AlertStats> {
-  const prisma = getPrisma();
+  try {
+    const prisma = getPrisma();
 
-  const [activeSubscribers, alertsSent, lastAlert] = await Promise.all([
-    prisma.subscriber.count({ where: { active: true } }),
-    prisma.alertLog.count(),
-    prisma.alertLog.findFirst({ orderBy: { triggeredAt: "desc" } }),
-  ]);
+    const [activeSubscribers, alertsSent, lastAlert] = await Promise.all([
+      prisma.subscriber.count({ where: { active: true } }),
+      prisma.alertLog.count(),
+      prisma.alertLog.findFirst({ orderBy: { triggeredAt: "desc" } }),
+    ]);
 
-  return {
-    activeSubscribers,
-    alertsSent,
-    lastAlertAt: lastAlert ? lastAlert.triggeredAt.toISOString() : null,
-  };
+    return {
+      activeSubscribers,
+      alertsSent,
+      lastAlertAt: lastAlert ? lastAlert.triggeredAt.toISOString() : null,
+    };
+  } catch (error) {
+    console.error(
+      "[alert-stats] getAlertStats failed; returning defaults:",
+      error,
+    );
+    return { activeSubscribers: 0, alertsSent: 0, lastAlertAt: null };
+  }
 }
 
 export async function getRecentAlerts(limit: number): Promise<RecentAlert[]> {
-  const prisma = getPrisma();
+  try {
+    const prisma = getPrisma();
 
-  const rows = await prisma.alertLog.findMany({
-    orderBy: { triggeredAt: "desc" },
-    take: limit,
-  });
+    const rows = await prisma.alertLog.findMany({
+      orderBy: { triggeredAt: "desc" },
+      take: limit,
+    });
 
-  return rows.map((row) => ({
-    id: row.id,
-    regionCode: row.regionCode,
-    triggerReason: row.triggerReason,
-    triggeredAt: row.triggeredAt.toISOString(),
-    recipientsCount: row.recipientsCount,
-  }));
+    return rows.map((row) => ({
+      id: row.id,
+      regionCode: row.regionCode,
+      triggerReason: row.triggerReason,
+      triggeredAt: row.triggeredAt.toISOString(),
+      recipientsCount: row.recipientsCount,
+    }));
+  } catch (error) {
+    console.error(
+      "[alert-stats] getRecentAlerts failed; returning empty:",
+      error,
+    );
+    return [];
+  }
 }

@@ -56,7 +56,7 @@ export type LiveRiskSummary = {
 
 export type RegionDetail = {
   summary: RegionRiskSummary;
-  forecast: WeatherForecast;
+  forecast: WeatherForecast | null;
 };
 
 type CatchmentForecastSource = {
@@ -134,6 +134,31 @@ export function summarizeCatchment(
     level: deriveRiskLevel(evaluationRegion, evaluation),
     reasons: evaluation.reasons,
     upstream,
+    evaluatedAt,
+  };
+}
+
+/** Builds the `unknown` summary shown when a region's forecast can't be fetched.
+ *  Shared by getLiveRiskSummary's allSettled fallback and getRegionDetail's catch
+ *  so both degrade identically. */
+export function unknownRegionSummary(
+  region: Region,
+  evaluatedAt: string,
+): RegionRiskSummary {
+  return {
+    code: region.code,
+    name: region.name,
+    lat: region.lat,
+    lon: region.lon,
+    level: "unknown",
+    reasons: ["forecast unavailable"],
+    metrics: {
+      maxPrecipitation1hMm: 0,
+      maxPrecipitation3hMm: 0,
+      maxPrecipitationProbability: 0,
+      maxWindSpeedKmh: 0,
+      matchedWeatherCodes: [],
+    },
     evaluatedAt,
   };
 }
@@ -244,22 +269,7 @@ export async function getLiveRiskSummary(): Promise<LiveRiskSummary> {
         );
       }
       const region = regions[index];
-      return {
-        code: region.code,
-        name: region.name,
-        lat: region.lat,
-        lon: region.lon,
-        level: "unknown" as const,
-        reasons: ["forecast unavailable"],
-        metrics: {
-          maxPrecipitation1hMm: 0,
-          maxPrecipitation3hMm: 0,
-          maxPrecipitationProbability: 0,
-          maxWindSpeedKmh: 0,
-          matchedWeatherCodes: [],
-        },
-        evaluatedAt,
-      };
+      return unknownRegionSummary(region, evaluatedAt);
     },
   );
 
@@ -278,13 +288,23 @@ export async function getRegionDetail(
     return null;
   }
 
-  const forecast = await fetchPointForecast(
-    { lat: region.lat, lon: region.lon },
-    { revalidate: LIVE_RISK_REVALIDATE_SECONDS },
-  );
-
-  return {
-    summary: summarizeRegion(region, forecast, nowIso()),
-    forecast,
-  };
+  try {
+    const forecast = await fetchPointForecast(
+      { lat: region.lat, lon: region.lon },
+      { revalidate: LIVE_RISK_REVALIDATE_SECONDS },
+    );
+    return {
+      summary: summarizeRegion(region, forecast, nowIso()),
+      forecast,
+    };
+  } catch (error) {
+    console.error(
+      "[live-risk] getRegionDetail forecast failed; degrading to unknown:",
+      error,
+    );
+    return {
+      summary: unknownRegionSummary(region, nowIso()),
+      forecast: null,
+    };
+  }
 }

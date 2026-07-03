@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   summarizeRegion,
   summarizeCatchment,
+  unknownRegionSummary,
 } from "./live-risk";
 import type { Region } from "./regions";
 import type { WeatherForecast } from "./weather-client";
@@ -93,5 +94,25 @@ describe("summarizeCatchment", () => {
     const summary = summarizeCatchment(catchment, sources, upstream, evaluatedAt);
     expect(summary.level).toBe("warning");
     expect(summary.reasons.some((r) => r.startsWith("upstream"))).toBe(true);
+  });
+});
+
+describe("unknownRegionSummary", () => {
+  it("returns an unknown level with zero metrics and region passthrough", () => {
+    const summary = unknownRegionSummary(region, evaluatedAt);
+    expect(summary.code).toBe("accra");
+    expect(summary.name).toBe("Greater Accra");
+    expect(summary.lat).toBe(5.6037);
+    expect(summary.lon).toBe(-0.187);
+    expect(summary.level).toBe("unknown");
+    expect(summary.reasons).toContain("forecast unavailable");
+    expect(summary.metrics).toEqual({
+      maxPrecipitation1hMm: 0,
+      maxPrecipitation3hMm: 0,
+      maxPrecipitationProbability: 0,
+      maxWindSpeedKmh: 0,
+      matchedWeatherCodes: [],
+    });
+    expect(summary.evaluatedAt).toBe(evaluatedAt);
   });
 });
