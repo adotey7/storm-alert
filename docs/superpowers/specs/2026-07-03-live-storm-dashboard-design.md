@@ -140,14 +140,20 @@ Following the existing Vitest style (`alert-evaluator.test.ts`, `rate-limit.test
 4. **Coverage map** (Leaflet) integrated into the dashboard.
 5. **Homepage** impact bar + live risk chip.
 
-## Verify before implementing (explicit gates)
+## Verify before implementing (RESOLVED 2026-07-03)
 
-These are read-the-authoritative-source before writing the relevant code — per `AGENTS.md` (bundled Next.js 16 docs in `node_modules/next/dist/docs/`) and dependency compatibility:
+Read against bundled Next.js 16 docs in `node_modules/next/dist/docs/` per `AGENTS.md`, plus dependency compatibility checks:
 
-1. **Fetch revalidation mechanism in Next.js 16** — confirm how to set a ~5-min shared revalidation window on the live-risk fetches (vs the cron's `no-store`). Read the relevant bundled caching/data doc first.
-2. **Client-only dynamic import in Next.js 16** — confirm `next/dynamic` with `ssr: false` is the correct mechanism for the Leaflet map (or its current equivalent).
-3. **`react-leaflet` compatibility with React 19** — confirm peer-compat / install the compatible versions; add `leaflet` CSS import in the correct place (the bundling guide notes CSS imports over `<link>`).
-4. **Leaflet CSS** — confirm the correct way to load `leaflet/dist/leaflet.css` in a Next.js 16 client component (import vs global).
+1. **Fetch revalidation mechanism — RESOLVED.** `next.config.ts` has only `reactCompiler: true` (no `cacheComponents`), so the project uses the **Previous Model** ("Caching and Revalidating (Previous Model)"), not the new `'use cache'` directive. The cached live-risk fetch therefore uses the fetch-level option: `fetch(url, { next: { revalidate: 300 } })`. To keep the cron's `no-store` behavior *and* avoid duplicating the Open-Meteo URL/params/validation in `weather-client.ts`, **extend `fetchPointForecast` with an optional `{ revalidate?: number }`** — default stays `no-store` (cron unchanged); UI calls pass `{ revalidate: 300 }`.
+2. **Client-only dynamic import — RESOLVED.** `next/dynamic` with `ssr: false` is valid in Next.js 16, but **only inside Client Components** (the bundled `lazy-loading.md` states `ssr: false` is not supported in Server Components). Therefore the Leaflet map requires a thin `'use client'` loader wrapper (`coverage-map-loader.tsx`) that calls `dynamic(() => import('./coverage-map'), { ssr: false })`; the server dashboard renders that loader with plain-serializable props.
+3. **`react-leaflet` ↔ React 19 — RESOLVED.** `react-leaflet@5.0.0` peerDependencies: `leaflet ^1.9.0`, `react ^19.0.0`, `react-dom ^19.0.0`. Compatible with the project's `react@19.2.7`. Install `leaflet`, `react-leaflet`, and `@types/leaflet` as dev.
+4. **Leaflet CSS — RESOLVED.** Per the bundling guide (CSS imports, not `<link>` tags, in the App Router), load styles via `import 'leaflet/dist/leaflet.css'` inside the client `coverage-map.tsx` component (bundled with the dynamically-imported client chunk).
+
+### Caching strategy summary (definitive)
+
+- **Cron path** — `fetchPointForecast(point)` (no options) → `cache: "no-store"`, fresh every scheduled poll. Unchanged.
+- **Live-risk path** — `fetchPointForecast(point, { revalidate: 300 })` → 5-minute shared revalidation window across all visitors. Used by `lib/live-risk.ts` for the dashboard, map, detail page, and homepage chip.
+- **Recent-alerts / impact stats** — read-only Prisma queries against `AlertLog`, no fetch caching (DB is the source of truth for history).
 
 ## Out of scope (YAGNI)
 
