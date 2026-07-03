@@ -6,6 +6,7 @@ import { RISK_LEVEL_LABELS } from "@/lib/risk-level";
 import RegionRiskCard from "@/app/_components/region-risk-card";
 import RecentAlerts from "@/app/_components/recent-alerts";
 import ImpactBar from "@/app/_components/impact-bar";
+import CoverageMapLoader from "@/app/_components/coverage-map-loader";
 import { RISK_LEVEL_STYLES } from "@/app/_components/risk-level-styles";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +49,16 @@ export default async function AlertsPage() {
               <RegionRiskCard key={region.code} summary={region} />
             ))}
           </div>
+        </section>
+
+        <section className="mb-10 w-full">
+          <h2 className="mb-3 text-left text-[13px] font-semibold uppercase tracking-wide text-ink-muted">
+            Coverage map
+          </h2>
+          <CoverageMapLoader
+            regions={summary.regions}
+            catchments={summary.catchments}
+          />
         </section>
 
         {summary.catchments.map((catchment) => {
