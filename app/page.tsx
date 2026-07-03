@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { CloudLightning, MapPinned, ShieldOff } from "lucide-react";
 import SubscribeForm from "./_components/subscribe-form";
+import ImpactBar from "./_components/impact-bar";
+import { getLiveRiskSummary } from "@/lib/live-risk";
+import { getAlertStats } from "@/lib/alert-stats";
 
-export default function Home() {
+export default async function Home() {
+  const [summary, stats] = await Promise.all([
+    getLiveRiskSummary(),
+    getAlertStats(),
+  ]);
+
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-10 sm:py-16">
       <div className="flex w-full max-w-2xl flex-col items-center">
-        <div className="mb-10 text-center">
+        <div className="mb-8 text-center">
           <h1 className="font-sans text-4xl font-bold tracking-tight text-ink sm:text-5xl">
             StormAlert GH
           </h1>
@@ -15,10 +23,25 @@ export default function Home() {
           </p>
         </div>
 
-        <SubscribeForm />
+        <div className="mb-10 w-full">
+          <ImpactBar
+            stats={stats}
+            regionsCovered={summary.regions.length}
+            evaluatedAt={summary.evaluatedAt}
+          />
+        </div>
+
+        <SubscribeForm regionSummaries={summary.regions} />
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center text-[13px] text-ink-muted">
           <span>Already subscribed?</span>
+          <Link
+            href="/alerts"
+            className="inline-flex items-center gap-1.5 font-medium text-earth underline-offset-4 transition-colors hover:text-earth-hover hover:underline focus-visible:rounded-md"
+          >
+            <MapPinned size={13} strokeWidth={1.8} aria-hidden="true" />
+            View live dashboard
+          </Link>
           <Link
             href="/update-alert-area"
             className="inline-flex items-center gap-1.5 font-medium text-earth underline-offset-4 transition-colors hover:text-earth-hover hover:underline focus-visible:rounded-md"
