@@ -5,6 +5,7 @@ import { getRegionDetail } from "@/lib/live-risk";
 import { RISK_LEVEL_LABELS } from "@/lib/risk-level";
 import { regions } from "@/lib/regions";
 import HourlyForecastStrip from "@/app/_components/hourly-forecast-strip";
+import SiteNav from "@/app/_components/site-nav";
 import { RISK_LEVEL_STYLES } from "@/app/_components/risk-level-styles";
 
 type Props = {
@@ -44,7 +45,10 @@ export default async function RegionDetailPage({ params }: Props) {
           <span
             className={`mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium ${style.badge}`}
           >
-            <span className={`size-2 rounded-full ${style.dot}`} aria-hidden="true" />
+            <span
+              className={`size-2 rounded-full ${style.dot}`}
+              aria-hidden="true"
+            />
             {label}
           </span>
         </div>
@@ -79,6 +83,10 @@ export default async function RegionDetailPage({ params }: Props) {
             </ul>
           </section>
         )}
+
+        <div className="mt-7">
+          <SiteNav />
+        </div>
 
         <p className="mt-16 flex items-center gap-1.5 text-xs text-ink-muted">
           <CloudLightning size={12} strokeWidth={1.5} aria-hidden="true" />

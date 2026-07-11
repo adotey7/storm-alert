@@ -49,7 +49,8 @@ export async function sendSms({
     return { sent: false, skipped: true };
   }
 
-  const baseUrl = getOptionalEnv("ARKESEL_API_BASE_URL") ?? "https://sms.arkesel.com";
+  const baseUrl =
+    getOptionalEnv("ARKESEL_API_BASE_URL") ?? "https://sms.arkesel.com";
   const response = await fetch(`${baseUrl}/api/v2/sms/send`, {
     method: "POST",
     headers: {
@@ -80,9 +81,9 @@ export async function sendSms({
 }
 
 export function createOtpMessage(code: string): string {
-  return `Your StormAlert GH verification code is ${code}. It expires soon.`;
+  return `StormAlert GH: Your verification code is ${code}. It expires in 10 minutes. Do not share this code with anyone.`;
 }
 
 export function createAlertAreaUpdateMessage(code: string): string {
-  return `StormAlert GH: Your alert area update code is ${code}. It expires soon.`;
+  return `StormAlert GH: Use code ${code} to update your flood alert location. This code expires in 10 minutes. If you did not request this, ignore this message.`;
 }

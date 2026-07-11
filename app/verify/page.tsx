@@ -1,5 +1,6 @@
 import { CloudLightning } from "lucide-react";
 import VerifyForm from "../_components/verify-form";
+import SiteNav from "../_components/site-nav";
 
 type VerifyPageProps = {
   searchParams: Promise<{
@@ -31,6 +32,10 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
           initialPhone={getInitialParam(params.phone)}
           initialUssdCode={getInitialParam(params.ussd_code)}
         />
+
+        <div className="mt-7">
+          <SiteNav />
+        </div>
 
         <p className="mt-16 flex items-center gap-1.5 text-xs text-ink-muted">
           <CloudLightning size={12} strokeWidth={1.5} aria-hidden="true" />

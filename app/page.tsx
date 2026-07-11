@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { CloudLightning, MapPinned, ShieldOff } from "lucide-react";
+import { CloudLightning } from "lucide-react";
 import SubscribeForm from "./_components/subscribe-form";
 import ImpactBar from "./_components/impact-bar";
+import SiteNav from "./_components/site-nav";
 import { getLiveRiskSummary } from "@/lib/live-risk";
 import { getAlertStats } from "@/lib/alert-stats";
 
@@ -33,29 +33,8 @@ export default async function Home() {
 
         <SubscribeForm regionSummaries={summary.regions} />
 
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center text-[13px] text-ink-muted">
-          <span>Already subscribed?</span>
-          <Link
-            href="/alerts"
-            className="inline-flex items-center gap-1.5 font-medium text-earth underline-offset-4 transition-colors hover:text-earth-hover hover:underline focus-visible:rounded-md"
-          >
-            <MapPinned size={13} strokeWidth={1.8} aria-hidden="true" />
-            View live dashboard
-          </Link>
-          <Link
-            href="/update-alert-area"
-            className="inline-flex items-center gap-1.5 font-medium text-earth underline-offset-4 transition-colors hover:text-earth-hover hover:underline focus-visible:rounded-md"
-          >
-            <MapPinned size={13} strokeWidth={1.8} aria-hidden="true" />
-            Update alert area
-          </Link>
-          <Link
-            href="/unsubscribe"
-            className="inline-flex items-center gap-1.5 font-medium text-earth underline-offset-4 transition-colors hover:text-earth-hover hover:underline focus-visible:rounded-md"
-          >
-            <ShieldOff size={13} strokeWidth={1.8} aria-hidden="true" />
-            Stop SMS alerts
-          </Link>
+        <div className="mt-7">
+          <SiteNav />
         </div>
 
         <p className="mt-16 flex items-center gap-1.5 text-xs text-ink-muted">

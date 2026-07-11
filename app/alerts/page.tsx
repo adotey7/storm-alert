@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CloudLightning, MapPinned } from "lucide-react";
 import { getLiveRiskSummary } from "@/lib/live-risk";
 import { getAlertStats, getRecentAlerts } from "@/lib/alert-stats";
@@ -7,6 +6,7 @@ import RegionRiskCard from "@/app/_components/region-risk-card";
 import RecentAlerts from "@/app/_components/recent-alerts";
 import ImpactBar from "@/app/_components/impact-bar";
 import CoverageMapLoader from "@/app/_components/coverage-map-loader";
+import SiteNav from "@/app/_components/site-nav";
 import { RISK_LEVEL_STYLES } from "@/app/_components/risk-level-styles";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +67,11 @@ export default async function AlertsPage() {
           return (
             <section key={catchment.code} className="mb-10 w-full">
               <div className="mb-3 flex items-center gap-2">
-                <MapPinned size={15} className="text-earth" aria-hidden="true" />
+                <MapPinned
+                  size={15}
+                  className="text-earth"
+                  aria-hidden="true"
+                />
                 <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink-muted">
                   {catchment.displayName}
                 </h2>
@@ -88,10 +92,7 @@ export default async function AlertsPage() {
               {catchment.reasons.length > 0 && (
                 <ul className="mt-2 space-y-1">
                   {catchment.reasons.map((reason) => (
-                    <li
-                      key={reason}
-                      className="text-[13px] text-ink-muted"
-                    >
+                    <li key={reason} className="text-[13px] text-ink-muted">
                       {reason}
                     </li>
                   ))}
@@ -108,12 +109,7 @@ export default async function AlertsPage() {
           <RecentAlerts alerts={recentAlerts} />
         </section>
 
-        <Link
-          href="/"
-          className="text-[13px] font-medium text-earth underline-offset-4 hover:underline"
-        >
-          Subscribe for SMS alerts
-        </Link>
+        <SiteNav />
 
         <p className="mt-16 flex items-center gap-1.5 text-xs text-ink-muted">
           <CloudLightning size={12} strokeWidth={1.5} aria-hidden="true" />

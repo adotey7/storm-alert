@@ -76,10 +76,10 @@ describe("alert evaluator", () => {
     );
 
     expect(createAlertMessage("Greater Accra", evaluation)).toContain(
-      "StormAlert GH: Weather risk detected for Greater Accra.",
+      "StormAlert GH: Weather alert for Greater Accra.",
     );
     expect(createAlertMessage("Greater Accra", evaluation)).toContain(
-      "wind speed 61km/h exceeds 60km/h",
+      "Strong winds expected (up to 61 km/h)",
     );
   });
 
@@ -95,7 +95,7 @@ describe("alert evaluator", () => {
         evaluation,
         "https://storm-alert.example/unsubscribe",
       ),
-    ).toContain("Opt out: https://storm-alert.example/unsubscribe");
+    ).toContain("Stop alerts: https://storm-alert.example/unsubscribe");
   });
 
   it("triggers catchment alerts from upstream heavy rain", () => {
@@ -197,13 +197,21 @@ describe("alert evaluator", () => {
       catchmentWaterway: "Odaw/Dome Bridge",
     };
     expect(
-      createAlertMessage("Odaw/Dome Bridge drainage area", evaluation, undefined, options),
-    ).toContain(
-      "Flood risk detected for Odaw/Dome Bridge drainage area.",
-    );
+      createAlertMessage(
+        "Odaw/Dome Bridge drainage area",
+        evaluation,
+        undefined,
+        options,
+      ),
+    ).toContain("StormAlert GH: Flood alert for Odaw/Dome Bridge area.");
     expect(
-      createAlertMessage("Odaw/Dome Bridge drainage area", evaluation, undefined, options),
-    ).toContain("Heavy upstream rain may affect Odaw/Dome Bridge drainage.");
+      createAlertMessage(
+        "Odaw/Dome Bridge drainage area",
+        evaluation,
+        undefined,
+        options,
+      ),
+    ).toContain("Heavy rain upstream (Aburi Ridge)");
   });
 
   it("uses catchmentWaterway when provided for the drainage reference", () => {
@@ -218,11 +226,16 @@ describe("alert evaluator", () => {
     ]);
 
     expect(
-      createAlertMessage("Odaw/Dome Bridge drainage area", evaluation, undefined, {
-        kind: "catchment",
-        catchmentWaterway: "Odaw/Dome Bridge",
-      }),
-    ).toContain("Heavy upstream rain may affect Odaw/Dome Bridge drainage.");
+      createAlertMessage(
+        "Odaw/Dome Bridge drainage area",
+        evaluation,
+        undefined,
+        {
+          kind: "catchment",
+          catchmentWaterway: "Odaw/Dome Bridge",
+        },
+      ),
+    ).toContain("Flood alert for Odaw/Dome Bridge area.");
   });
 
   it("does not mention upstream rain for local-only catchment risk", () => {
@@ -246,7 +259,7 @@ describe("alert evaluator", () => {
       },
     );
 
-    expect(message).toContain("Heavy rain may affect Odaw/Dome Bridge drainage.");
-    expect(message).not.toContain("Heavy upstream rain may affect");
+    expect(message).toContain("Very heavy rain locally");
+    expect(message).not.toContain("upstream");
   });
 });
