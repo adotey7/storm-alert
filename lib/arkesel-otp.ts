@@ -79,14 +79,16 @@ function getSenderId(): string {
 }
 
 function createArkeselOtpMessage(): string {
-  return "Your StormAlert GH verification code is %otp_code%. It expires in %expiry% minutes.";
+  return "StormAlert GH: Your verification code is %otp_code%. It expires in %expiry% minutes. Do not share this code with anyone.";
 }
 
 export function shouldUseArkeselOtp(): boolean {
   return Boolean(getOtpApiKey());
 }
 
-export async function generateArkeselOtp(phone: string): Promise<ArkeselOtpResult> {
+export async function generateArkeselOtp(
+  phone: string,
+): Promise<ArkeselOtpResult> {
   const apiKey = requireEnv("ARKESEL_API_KEY");
   const response = await fetchOtpProvider(
     `${getOtpBaseUrl()}/api/otp/generate`,
@@ -133,20 +135,17 @@ export async function verifyArkeselOtp(
   code: string,
 ): Promise<boolean> {
   const apiKey = requireEnv("ARKESEL_API_KEY");
-  const response = await fetchOtpProvider(
-    `${getOtpBaseUrl()}/api/otp/verify`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": apiKey,
-      },
-      body: JSON.stringify({
-        code,
-        number: toArkeselNumber(phone),
-      }),
+  const response = await fetchOtpProvider(`${getOtpBaseUrl()}/api/otp/verify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
     },
-  );
+    body: JSON.stringify({
+      code,
+      number: toArkeselNumber(phone),
+    }),
+  });
   const providerResponse = await readJsonSafely(response);
   const record =
     providerResponse && typeof providerResponse === "object"

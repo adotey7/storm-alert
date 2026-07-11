@@ -1,5 +1,6 @@
 import { ShieldOff } from "lucide-react";
 import UnsubscribeForm from "../_components/unsubscribe-form";
+import SiteNav from "../_components/site-nav";
 
 export default function UnsubscribePage() {
   return (
@@ -15,6 +16,10 @@ export default function UnsubscribePage() {
         </div>
 
         <UnsubscribeForm />
+
+        <div className="mt-7">
+          <SiteNav />
+        </div>
 
         <p className="mt-16 flex items-center gap-1.5 text-xs text-ink-muted">
           <ShieldOff size={12} strokeWidth={1.5} aria-hidden="true" />

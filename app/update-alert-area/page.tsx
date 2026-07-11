@@ -1,5 +1,6 @@
 import { MapPinned } from "lucide-react";
 import UpdateAlertAreaForm from "../_components/update-alert-area-form";
+import SiteNav from "../_components/site-nav";
 
 export default function UpdateAlertAreaPage() {
   return (
@@ -10,11 +11,16 @@ export default function UpdateAlertAreaPage() {
             Update alert area
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-ink-secondary">
-            Move an existing subscription to a new region or local forecast area.
+            Move an existing subscription to a new region or local forecast
+            area.
           </p>
         </div>
 
         <UpdateAlertAreaForm />
+
+        <div className="mt-7">
+          <SiteNav />
+        </div>
 
         <p className="mt-16 flex items-center gap-1.5 text-xs text-ink-muted">
           <MapPinned size={12} strokeWidth={1.5} aria-hidden="true" />

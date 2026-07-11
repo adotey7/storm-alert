@@ -50,8 +50,14 @@ function createForecast(precipitation: number[] = [0, 1, 2, 1, 0, 0]) {
   };
 }
 
-function isPoint(point: { lat: number; lon: number }, lat: number, lon: number) {
-  return Math.abs(point.lat - lat) < 0.0001 && Math.abs(point.lon - lon) < 0.0001;
+function isPoint(
+  point: { lat: number; lon: number },
+  lat: number,
+  lon: number,
+) {
+  return (
+    Math.abs(point.lat - lat) < 0.0001 && Math.abs(point.lon - lon) < 0.0001
+  );
 }
 
 function isAburiPoint(point: { lat: number; lon: number }) {
@@ -82,12 +88,13 @@ describe("poll weather cron route", () => {
         forecastLon: -0.2,
       },
     ]);
-    fetchPointForecast.mockImplementation((point: { lat: number; lon: number }) =>
-      Promise.resolve(
-        isAburiPoint(point)
-          ? createForecast([0, 24, 0, 0, 0, 0])
-          : createForecast(),
-      ),
+    fetchPointForecast.mockImplementation(
+      (point: { lat: number; lon: number }) =>
+        Promise.resolve(
+          isAburiPoint(point)
+            ? createForecast([0, 24, 0, 0, 0, 0])
+            : createForecast(),
+        ),
     );
     sendSms.mockResolvedValue({ sent: true, skipped: false });
   });
@@ -127,15 +134,13 @@ describe("poll weather cron route", () => {
       expect.objectContaining({
         recipients: ["+233244111111"],
         message: expect.stringContaining(
-          "Flood risk detected for Odaw/Dome Bridge drainage area.",
+          "Flood alert for Odaw/Dome Bridge area.",
         ),
       }),
     );
     expect(sendSms).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: expect.stringContaining(
-          "Heavy upstream rain may affect Odaw/Dome Bridge drainage.",
-        ),
+        message: expect.stringContaining("Heavy rain upstream (Aburi Ridge)"),
       }),
     );
     expect(prisma.alertLog.create).toHaveBeenCalledWith({
@@ -147,17 +152,19 @@ describe("poll weather cron route", () => {
   });
 
   it("records failed catchment watch points without dropping successful forecasts", async () => {
-    fetchPointForecast.mockImplementation((point: { lat: number; lon: number }) => {
-      if (isMadinaPoint(point)) {
-        return Promise.reject(new Error("Madina forecast unavailable"));
-      }
+    fetchPointForecast.mockImplementation(
+      (point: { lat: number; lon: number }) => {
+        if (isMadinaPoint(point)) {
+          return Promise.reject(new Error("Madina forecast unavailable"));
+        }
 
-      return Promise.resolve(
-        isAburiPoint(point)
-          ? createForecast([0, 24, 0, 0, 0, 0])
-          : createForecast(),
-      );
-    });
+        return Promise.resolve(
+          isAburiPoint(point)
+            ? createForecast([0, 24, 0, 0, 0, 0])
+            : createForecast(),
+        );
+      },
+    );
 
     const { GET } = await import("./route");
     const response = await GET(cronRequest());
@@ -190,17 +197,21 @@ describe("poll weather cron route", () => {
   });
 
   it("degrades a failed region forecast instead of failing the whole cron run", async () => {
-    fetchPointForecast.mockImplementation((point: { lat: number; lon: number }) => {
-      if (isAccraRegionPoint(point)) {
-        return Promise.reject(new Error("Open-Meteo request failed with 503."));
-      }
+    fetchPointForecast.mockImplementation(
+      (point: { lat: number; lon: number }) => {
+        if (isAccraRegionPoint(point)) {
+          return Promise.reject(
+            new Error("Open-Meteo request failed with 503."),
+          );
+        }
 
-      return Promise.resolve(
-        isAburiPoint(point)
-          ? createForecast([0, 24, 0, 0, 0, 0])
-          : createForecast(),
-      );
-    });
+        return Promise.resolve(
+          isAburiPoint(point)
+            ? createForecast([0, 24, 0, 0, 0, 0])
+            : createForecast(),
+        );
+      },
+    );
 
     const { GET } = await import("./route");
     const response = await GET(cronRequest());

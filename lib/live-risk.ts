@@ -249,15 +249,25 @@ async function evaluateCatchmentSummary(
 export async function getLiveRiskSummary(): Promise<LiveRiskSummary> {
   const evaluatedAt = nowIso();
 
-  const regionResults = await Promise.allSettled(
-    regions.map(async (region) => ({
-      region,
-      forecast: await fetchPointForecast(
-        { lat: region.lat, lon: region.lon },
-        { revalidate: LIVE_RISK_REVALIDATE_SECONDS },
+  // Start region and catchment fetches concurrently — catchment evaluations
+  // don't depend on region results, so running them in parallel eliminates a
+  // sequential waterfall (16 region fetches → then 4 catchment fetches).
+  const [regionResults, catchmentSummaries] = await Promise.all([
+    Promise.allSettled(
+      regions.map(async (region) => ({
+        region,
+        forecast: await fetchPointForecast(
+          { lat: region.lat, lon: region.lon },
+          { revalidate: LIVE_RISK_REVALIDATE_SECONDS },
+        ),
+      })),
+    ),
+    Promise.all(
+      catchments.map((catchment) =>
+        evaluateCatchmentSummary(catchment, evaluatedAt),
       ),
-    })),
-  );
+    ),
+  ]);
 
   const regionSummaries: RegionRiskSummary[] = regionResults.map(
     (result, index) => {
@@ -273,11 +283,11 @@ export async function getLiveRiskSummary(): Promise<LiveRiskSummary> {
     },
   );
 
-  const catchmentSummaries = await Promise.all(
-    catchments.map((catchment) => evaluateCatchmentSummary(catchment, evaluatedAt)),
-  );
-
-  return { regions: regionSummaries, catchments: catchmentSummaries, evaluatedAt };
+  return {
+    regions: regionSummaries,
+    catchments: catchmentSummaries,
+    evaluatedAt,
+  };
 }
 
 export async function getRegionDetail(
