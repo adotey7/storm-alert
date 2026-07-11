@@ -44,8 +44,13 @@ export async function fetchRegionForecast(
   return fetchPointForecast(region);
 }
 
+export type FetchPointForecastOptions = {
+  revalidate?: number;
+};
+
 export async function fetchPointForecast(
   point: ForecastPoint,
+  options: FetchPointForecastOptions = {},
 ): Promise<WeatherForecast> {
   const params = new URLSearchParams({
     latitude: String(point.lat),
@@ -57,7 +62,9 @@ export async function fetchPointForecast(
   });
   const response = await fetch(
     `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
-    { cache: "no-store" },
+    options.revalidate
+      ? { next: { revalidate: options.revalidate } }
+      : { cache: "no-store" },
   );
 
   if (!response.ok) {

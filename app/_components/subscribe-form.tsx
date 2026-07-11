@@ -25,6 +25,8 @@ import { findNearestRegion, regions } from "@/lib/regions";
 import { readApiMessageResponse } from "@/lib/api-response";
 import CustomSelect from "./custom-select";
 import OtpDelayHelp from "./otp-delay-help";
+import RegionRiskChip from "./region-risk-chip";
+import type { RegionRiskSummary } from "@/lib/live-risk";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -42,7 +44,11 @@ const PHONE_ERROR_ID = "phone-error";
 const REGION_ERROR_ID = "region-error";
 const STATUS_MESSAGE_ID = "subscribe-status";
 
-export default function SubscribeForm() {
+export default function SubscribeForm({
+  regionSummaries = [],
+}: {
+  regionSummaries?: RegionRiskSummary[];
+}) {
   const [phone, setPhone] = useState("");
   const [regionCode, setRegionCode] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -396,6 +402,12 @@ export default function SubscribeForm() {
             >
               {message}
             </p>
+          )}
+
+          {regionCode && regionSummaries.length > 0 && (
+            <div className="mt-2 flex justify-center">
+              <RegionRiskChip regionCode={regionCode} summaries={regionSummaries} />
+            </div>
           )}
         </div>
       </form>
